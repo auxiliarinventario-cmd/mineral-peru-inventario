@@ -1,2756 +1,1065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>MINERAL PERU - Control de Inventarios por Proyecto y Submódulo</title>
-
-<!-- Tailwind CSS -->
-
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Google Fonts -->
-
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-
-<!-- Lucide Icons -->
-
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
-
-<!-- SweetAlert2 -->
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- SheetJS (XLSX) -->
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<style>body {
-
-font-family: 'Inter', sans-serif;
-
-background-color: #0b0f19;
-
-color: #f3f4f6;
-
-text-align: center;
-
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0b0f19;
+    color: #f3f4f6;
+    text-align: center;
 }
-
-.font-brand {
-
-font-family: 'Cinzel', serif;
-
-}
-
+.font-brand { font-family: 'Cinzel', serif; }
 .gold-gradient-text {
-
-background: linear-gradient(135deg, #fce08f 0%, #d4af37 50%, #aa7c11 100%);
-
--webkit-background-clip: text;
-
--webkit-text-fill-color: transparent;
-
+    background: linear-gradient(135deg, #fce08f 0%, #d4af37 50%, #aa7c11 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
-
 .glass-panel {
-
-background: rgba(17, 24, 39, 0.85);
-
-backdrop-filter: blur(12px);
-
-border: 1px solid rgba(212, 175, 55, 0.2);
-
+    background: rgba(17, 24, 39, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 175, 55, 0.2);
 }
-
-/* OCULTAR BARRAS DE SCROLL EN TODOS LOS NAVEGADORES */
-
-::-webkit-scrollbar {
-
-display: none !important;
-
-width: 0 !important;
-
-height: 0 !important;
-
-}
-
-{
--ms-overflow-style: none !important;
-
-scrollbar-width: none !important;
-
-}
-
+::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+* { -ms-overflow-style: none !important; scrollbar-width: none !important; }
 .submodulo-btn-activo {
-
-background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-
-color: #000000 !important;
-
-box-shadow: 0 0 15px rgba(245, 158, 11, 0.4) !important;
-
-border-color: #fbbf24 !important;
-
-font-weight: 800 !important;
-
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: #000000 !important;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4) !important;
+    border-color: #fbbf24 !important;
+    font-weight: 800 !important;
 }
-
 .submodulo-btn-inactivo {
-
-background-color: rgba(15, 23, 42, 0.7) !important;
-
-color: #9ca3af !important;
-
-border-color: rgba(212, 175, 55, 0.15) !important;
-
+    background-color: rgba(15, 23, 42, 0.7) !important;
+    color: #9ca3af !important;
+    border-color: rgba(212, 175, 55, 0.15) !important;
 }
-
 .submodulo-btn-inactivo:hover {
+    color: #f3f4f6 !important;
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border-color: rgba(212, 175, 55, 0.4) !important;
+}
+</style>
+</head>
+<body>
 
-color: #f3f4f6 !important;
-
-background-color: rgba(30, 41, 59, 0.9) !important;
-
-border-color: rgba(212, 175, 55, 0.4) !important;
-
-}</style>
-
-<!-- MODAL DE INICIO DE SESIÓN PRINCIPAL -->
-
-<div id="modalLogin" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-
-<div class="glass-panel max-w-md w-full rounded-2xl p-8 border border-amber-500/40 shadow-2xl relative text-center">
-
-<div class="text-center space-y-3 mb-6">
-
-<div class="inline-flex w-16 h-16 bg-black rounded-xl border border-amber-500/50 p-2 items-center justify-center shadow-lg">
-
-<svg viewBox="0 0 200 180" class="w-full h-full">
-
-<path d="M 20 120 L 70 30 L 100 80 L 130 20 L 180 120 Z" fill="none" stroke="#d4af37" stroke-width="8" stroke-linejoin="round"></path>
-
-<path d="M 50 120 L 85 60 L 115 110" fill="none" stroke="#d4af37" stroke-width="5" stroke-linejoin="round"></path>
-
-<text x="100" y="115" font-family="'Cinzel', serif" font-weight="800" font-size="60" fill="#d4af37" text-anchor="middle">MP</text>
-
-<path d="M 10 135 Q 100 120 190 135 Q 100 145 10 135" fill="#d4af37"></path>
-
-</svg>
-
+<!-- MODAL DE INICIO DE SESIÓN ADMIN (OCULTO POR DEFECTO PARA ACCESO PÚBLICO) -->
+<div id="modalLogin" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+  <div class="glass-panel max-w-md w-full rounded-2xl p-8 border border-amber-500/40 shadow-2xl relative text-center">
+    <button type="button" onclick="cerrarModalLogin()" class="absolute top-4 right-4 text-gray-400 hover:text-white cursor-pointer">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+    <div class="text-center space-y-3 mb-6">
+      <div class="inline-flex w-16 h-16 bg-black rounded-xl border border-amber-500/50 p-2 items-center justify-center shadow-lg">
+        <svg viewBox="0 0 200 180" class="w-full h-full">
+          <path d="M 20 120 L 70 30 L 100 80 L 130 20 L 180 120 Z" fill="none" stroke="#d4af37" stroke-width="8" stroke-linejoin="round"></path>
+          <path d="M 50 120 L 85 60 L 115 110" fill="none" stroke="#d4af37" stroke-width="5" stroke-linejoin="round"></path>
+          <text x="100" y="115" font-family="'Cinzel', serif" font-weight="800" font-size="60" fill="#d4af37" text-anchor="middle">MP</text>
+          <path d="M 10 135 Q 100 120 190 135 Q 100 145 10 135" fill="#d4af37"></path>
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold font-brand gold-gradient-text tracking-wider text-center">ACCESO ADMINISTRADOR</h2>
+      <p class="text-xs text-amber-500/80 uppercase font-semibold text-center">Inicia sesión para registrar o editar datos</p>
+    </div>
+    <form id="formLogin" onsubmit="iniciarSesion(event)" class="space-y-4 text-center">
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">USUARIO</label>
+        <div class="relative">
+          <input type="text" id="loginUsuario" required placeholder="Ingresa admin" class="w-full bg-gray-950 border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-500">
+          <i data-lucide="user" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
+        </div>
+      </div>
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">CONTRASEÑA</label>
+        <div class="relative">
+          <input type="password" id="loginPassword" required placeholder="Ingresa tu Contraseña" class="w-full bg-gray-950 border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-500">
+          <i data-lucide="lock" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
+        </div>
+      </div>
+      <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg transition shadow-lg shadow-amber-500/20 cursor-pointer flex items-center justify-center space-x-2 mt-2">
+        <i data-lucide="log-in" class="w-4 h-4"></i>
+        <span>Ingresar como Administrador</span>
+      </button>
+    </form>
+  </div>
 </div>
 
-<h2 class="text-2xl font-bold font-brand gold-gradient-text tracking-wider text-center">MINERAL PERU</h2>
-
-<p class="text-xs text-amber-500/80 uppercase font-semibold text-center">Sistema de Control de Inventarios</p>
-
-</div>
-
-<form id="formLogin" onsubmit="iniciarSesion(event)" class="space-y-4 text-center">
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">USUARIO</label>
-
-<div class="relative">
-
-<input type="text" id="loginUsuario" required="" placeholder="Ingresa tu Usuario" class="w-full bg-gray-950 border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-500">
-
-<i data-lucide="user" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
-
-</div>
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">CONTRASEÑA</label>
-
-<div class="relative">
-
-<input type="password" id="loginPassword" required="" placeholder="Ingresa tu Contraseña" class="w-full bg-gray-950 border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-500">
-
-<i data-lucide="lock" class="w-4 h-4 text-gray-400 absolute left-3 top-3"></i>
-
-</div>
-
-</div>
-
-<div class="flex items-center justify-center text-xs pt-1">
-
-<button type="button" onclick="abrirModalCambiarPassDesdeLogin()" class="text-amber-400 hover:text-amber-300 hover:underline transition cursor-pointer text-center">¿Olvidaste o deseas cambiar tu contraseña?</button>
-
-</div>
-
-<button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg transition shadow-lg shadow-amber-500/20 cursor-pointer flex items-center justify-center space-x-2 mt-2">
-
-<i data-lucide="log-in" class="w-4 h-4"></i>
-
-<span>Ingresar al Sistema</span>
-
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-<!-- MODAL PARA CAMBIAR CONTRASEÑA -->
-
-<div id="modalCambiarPass" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-
-<div class="glass-panel max-w-md w-full rounded-2xl p-6 border border-amber-500/40 shadow-2xl relative text-center">
-
-<button type="button" onclick="cerrarModalCambiarPass()" class="absolute top-4 right-4 text-gray-400 hover:text-white cursor-pointer">
-
-<i data-lucide="x" class="w-5 h-5"></i>
-
-</button>
-
-<div class="flex items-center justify-center space-x-3 border-b border-gray-800 pb-3 mb-4">
-
-<div class="p-2 bg-amber-500/10 rounded-lg text-amber-400">
-
-<i data-lucide="key-round" class="w-6 h-6"></i>
-
-</div>
-
-<div class="text-center">
-
-<h3 class="text-base font-bold text-amber-400 text-center">CAMBIAR CONTRASEÑA DE USUARIO</h3>
-
-<p class="text-xs text-gray-400 text-center" id="lblUsuarioCambiarPass">Actualizar credenciales de acceso</p>
-
-</div>
-
-</div>
-
-<form onsubmit="ejecutarCambioPassword(event)" class="space-y-4 text-center">
-
-<div id="divCampoUsuarioSelect" class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">SELECCIONAR USUARIO *</label>
-
-<select id="passUsuarioSelect" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-500 cursor-pointer">
-
-<option value="admin">Administrador (admin)</option>
-
-<option value="usuario">Usuario Consulta (usuario)</option>
-
-</select>
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">CONTRASEÑA ACTUAL *</label>
-
-<input type="password" id="passActual" required="" placeholder="Ingrese la contraseña actual" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">NUEVA CONTRASEÑA *</label>
-
-<input type="password" id="passNueva" required="" placeholder="Mínimo 4 caracteres" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">CONFIRMAR NUEVA CONTRASEÑA *</label>
-
-<input type="password" id="passConfirmar" required="" placeholder="Repita la nueva contraseña" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
-
-</div>
-
-<div class="flex items-center justify-center space-x-3 pt-2">
-
-<button type="button" onclick="cerrarModalCambiarPass()" class="px-4 py-2 border border-gray-700 hover:bg-gray-800 text-gray-300 text-sm font-medium rounded-lg transition cursor-pointer">Cancelar</button>
-
-<button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm rounded-lg shadow-lg transition cursor-pointer">Actualizar Contraseña</button>
-
-</div>
-
-</form>
-
-</div>
-
-</div>
-
-<!-- CABECERA PRINCIPAL CON NAVEGACIÓN ORGANIZADA -->
-
+<!-- CABECERA PRINCIPAL -->
 <header class="bg-gray-950 border-b border-amber-600/30 sticky top-0 z-40 shadow-xl">
-
-<div class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
-
-<div class="flex items-center justify-center space-x-4 w-full md:w-auto">
-
-<div class="relative w-14 h-14 bg-black rounded-lg border border-amber-500/40 p-1 flex items-center justify-center shadow-lg">
-
-<svg viewBox="0 0 200 180" class="w-full h-full">
-
-<path d="M 20 120 L 70 30 L 100 80 L 130 20 L 180 120 Z" fill="none" stroke="#d4af37" stroke-width="8" stroke-linejoin="round"></path>
-
-<path d="M 50 120 L 85 60 L 115 110" fill="none" stroke="#d4af37" stroke-width="5" stroke-linejoin="round"></path>
-
-<text x="100" y="115" font-family="'Cinzel', serif" font-weight="800" font-size="60" fill="#d4af37" text-anchor="middle">MP</text>
-
-<path d="M 10 135 Q 100 120 190 135 Q 100 145 10 135" fill="#d4af37"></path>
-
-</svg>
-
-</div>
-
-<div class="text-center md:text-left">
-
-<h1 class="text-2xl font-bold font-brand tracking-wider gold-gradient-text text-center md:text-left">MINERAL PERU</h1>
-
-<p class="text-xs text-amber-500/80 uppercase tracking-widest font-semibold text-center md:text-left">Agroindustria &amp; Minería</p>
-
-</div>
-
-</div>
-
-<div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full md:w-auto">
-
-<div id="usuarioSesionInfo" class="hidden items-center justify-center space-x-2 bg-gray-900 border border-gray-800 px-3 py-1.5 rounded-lg">
-
-<i data-lucide="shield-check" class="w-4 h-4 text-amber-400" id="iconRol"></i>
-
-<span id="txtRolUsuario" class="text-xs font-bold text-amber-300">ADMINISTRADOR</span>
-
-<button type="button" onclick="abrirModalCambiarPassDesdeHeader()" title="Cambiar Contraseña" class="text-amber-400 hover:text-amber-300 ml-2 cursor-pointer">
-
-<i data-lucide="key-round" class="w-4 h-4"></i>
-
-</button>
-
-<button type="button" onclick="cerrarSesion()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-400 ml-1 cursor-pointer">
-
-<i data-lucide="log-out" class="w-4 h-4"></i>
-
-</button>
-
-</div>
-
-<button type="button" id="btnLimpiarDatos" onclick="abrirOpcionesLimpieza()" class="flex items-center justify-center space-x-2 bg-red-950/80 hover:bg-red-900 text-red-400 border border-red-500/50 px-3 py-2 rounded-lg text-sm font-medium transition shadow cursor-pointer">
-
-<i data-lucide="trash-2" class="w-4 h-4"></i>
-
-<span id="txtContadorLimpieza">Limpiar Datos (0)</span>
-
-</button>
-
-<button type="button" id="btnImportarExcel" onclick="abrirModalImportar()" class="flex items-center justify-center space-x-2 bg-gray-800 hover:bg-gray-700 text-amber-400 border border-amber-500/40 px-3 py-2 rounded-lg text-sm font-medium transition shadow cursor-pointer">
-
-<i data-lucide="file-up" class="w-4 h-4"></i>
-
-<span>Importar Excel</span>
-
-</button>
-
-<button type="button" id="btnGuardarCambios" onclick="guardarCambiosManuales()" class="flex items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-500 text-black font-semibold px-4 py-2 rounded-lg text-sm transition shadow-lg shadow-amber-600/20 cursor-pointer">
-
-<i data-lucide="save" class="w-4 h-4"></i>
-
-<span>Guardar Cambios</span>
-
-</button>
-
-<button type="button" onclick="exportarExcel()" class="flex items-center justify-center space-x-2 bg-emerald-700 hover:bg-emerald-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-lg shadow-emerald-700/20 cursor-pointer">
-
-<i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-
-<span>Exportar Excel</span>
-
-</button>
-
-</div>
-
-</div>
-
-<!-- PESTAÑAS PROYECTOS Y SUBMENÚ UNIFICADO -->
-
-<div class="bg-gray-900 border-t border-gray-800 px-4 sm:px-8 py-2 space-y-2"><!-- NIVEL 1: PROYECTOS -->
-
-<div class="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-center gap-2">
-
-<button type="button" onclick="cambiarProyecto('FOX')" id="tab-FOX" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
-
-<i data-lucide="pick" class="w-3.5 h-3.5"></i>
-
-<span>PROYECTO FOX</span>
-
-</button>
-
-<button type="button" onclick="cambiarProyecto('JESUS')" id="tab-JESUS" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
-
-<i data-lucide="mountain" class="w-3.5 h-3.5"></i>
-
-<span>PROYECTO JESUS</span>
-
-</button>
-
-<button type="button" onclick="cambiarProyecto('SAN_JACINTO')" id="tab-SAN_JACINTO" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
-
-<i data-lucide="factory" class="w-3.5 h-3.5"></i>
-
-<span>PROYECTO SAN JACINTO</span>
-
-</button>
-
-<button type="button" onclick="cambiarProyecto('RAMPA')" id="tab-RAMPA" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
-
-<i data-lucide="layers" class="w-3.5 h-3.5"></i>
-
-<span>PROYECTO RAMPA</span>
-
-</button>
-
-<button type="button" onclick="cambiarProyecto('PACKSACK')" id="tab-PACKSACK" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
-
-<i data-lucide="box" class="w-3.5 h-3.5"></i>
-
-<span>PROYECTO PACKSACK</span>
-
-</button>
-
-</div>
-
-<!-- NIVEL 2: SUBMENÚ DINÁMICO SEGÚN EL PROYECTO -->
-
-<div class="w-full max-w-[1600px] mx-auto flex items-center justify-center">
-
-<div id="contenedorSubmodulos" class="flex items-center justify-center space-x-2 bg-gray-950/90 p-1.5 rounded-2xl border border-amber-500/30 shadow-2xl flex-nowrap overflow-hidden"></div>
-
-</div>
-
-</div>
-
+  <div class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center justify-center space-x-4 w-full md:w-auto">
+      <div class="relative w-14 h-14 bg-black rounded-lg border border-amber-500/40 p-1 flex items-center justify-center shadow-lg">
+        <svg viewBox="0 0 200 180" class="w-full h-full">
+          <path d="M 20 120 L 70 30 L 100 80 L 130 20 L 180 120 Z" fill="none" stroke="#d4af37" stroke-width="8" stroke-linejoin="round"></path>
+          <path d="M 50 120 L 85 60 L 115 110" fill="none" stroke="#d4af37" stroke-width="5" stroke-linejoin="round"></path>
+          <text x="100" y="115" font-family="'Cinzel', serif" font-weight="800" font-size="60" fill="#d4af37" text-anchor="middle">MP</text>
+          <path d="M 10 135 Q 100 120 190 135 Q 100 145 10 135" fill="#d4af37"></path>
+        </svg>
+      </div>
+      <div class="text-center md:text-left">
+        <h1 class="text-2xl font-bold font-brand tracking-wider gold-gradient-text text-center md:text-left">MINERAL PERU</h1>
+        <p class="text-xs text-amber-500/80 uppercase tracking-widest font-semibold text-center md:text-left">Agroindustria &amp; Minería</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full md:w-auto">
+      <span id="estadoNube" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+        <span>☁️ Conectando...</span>
+      </span>
+      <button type="button" onclick="cargarDatosGuardados(true)" title="Actualizar datos ahora" class="flex items-center justify-center space-x-1 bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-500/40 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        <span>Actualizar</span>
+      </button>
+      <button type="button" id="btnAbrirLogin" onclick="abrirModalLogin()" class="flex items-center justify-center space-x-2 bg-amber-500 hover:bg-amber-400 text-black font-bold px-3 py-2 rounded-lg text-xs transition shadow cursor-pointer">
+        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+        <span>Modo Admin (Editar)</span>
+      </button>
+      <div id="usuarioSesionInfo" class="hidden items-center justify-center space-x-2 bg-gray-900 border border-amber-500/40 px-3 py-1.5 rounded-lg">
+        <i data-lucide="shield-check" class="w-4 h-4 text-amber-400"></i>
+        <span class="text-xs font-bold text-amber-300">ADMINISTRADOR</span>
+        <button type="button" onclick="cerrarSesion()" title="Salir de Modo Admin" class="text-gray-400 hover:text-red-400 ml-1 cursor-pointer">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <button type="button" id="btnLimpiarDatos" onclick="abrirOpcionesLimpieza()" class="hidden items-center justify-center space-x-2 bg-red-950/80 hover:bg-red-900 text-red-400 border border-red-500/50 px-3 py-2 rounded-lg text-sm font-medium transition shadow cursor-pointer">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+        <span id="txtContadorLimpieza">Limpiar Datos (0)</span>
+      </button>
+      <button type="button" id="btnImportarExcel" onclick="abrirModalImportar()" class="hidden items-center justify-center space-x-2 bg-gray-800 hover:bg-gray-700 text-amber-400 border border-amber-500/40 px-3 py-2 rounded-lg text-sm font-medium transition shadow cursor-pointer">
+        <i data-lucide="file-up" class="w-4 h-4"></i>
+        <span>Importar Excel</span>
+      </button>
+      <button type="button" id="btnGuardarCambios" onclick="guardarCambiosManuales()" class="hidden items-center justify-center space-x-2 bg-amber-600 hover:bg-amber-500 text-black font-semibold px-4 py-2 rounded-lg text-sm transition shadow-lg shadow-amber-600/20 cursor-pointer">
+        <i data-lucide="save" class="w-4 h-4"></i>
+        <span>Guardar Cambios</span>
+      </button>
+      <button type="button" onclick="exportarExcel()" class="flex items-center justify-center space-x-2 bg-emerald-700 hover:bg-emerald-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-lg shadow-emerald-700/20 cursor-pointer">
+        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+        <span>Exportar Excel</span>
+      </button>
+    </div>
+  </div>
+  <div class="bg-gray-900 border-t border-gray-800 px-4 sm:px-8 py-2 space-y-2">
+    <div class="w-full max-w-[1600px] mx-auto flex flex-wrap items-center justify-center gap-2">
+      <button type="button" onclick="cambiarProyecto('FOX')" id="tab-FOX" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
+        <i data-lucide="pick" class="w-3.5 h-3.5"></i>
+        <span>PROYECTO FOX</span>
+      </button>
+      <button type="button" onclick="cambiarProyecto('JESUS')" id="tab-JESUS" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
+        <i data-lucide="mountain" class="w-3.5 h-3.5"></i>
+        <span>PROYECTO JESUS</span>
+      </button>
+      <button type="button" onclick="cambiarProyecto('SAN_JACINTO')" id="tab-SAN_JACINTO" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
+        <i data-lucide="factory" class="w-3.5 h-3.5"></i>
+        <span>PROYECTO SAN JACINTO</span>
+      </button>
+      <button type="button" onclick="cambiarProyecto('RAMPA')" id="tab-RAMPA" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
+        <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+        <span>PROYECTO RAMPA</span>
+      </button>
+      <button type="button" onclick="cambiarProyecto('PACKSACK')" id="tab-PACKSACK" class="proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 border cursor-pointer">
+        <i data-lucide="box" class="w-3.5 h-3.5"></i>
+        <span>PROYECTO PACKSACK</span>
+      </button>
+    </div>
+    <div class="w-full max-w-[1600px] mx-auto flex items-center justify-center">
+      <div id="contenedorSubmodulos" class="flex items-center justify-center space-x-2 bg-gray-950/90 p-1.5 rounded-2xl border border-amber-500/30 shadow-2xl flex-nowrap overflow-hidden"></div>
+    </div>
+  </div>
 </header>
 
-<main class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6 text-center"><!-- FILTRO MES/AÑO -->
-
-<div class="glass-panel p-4 rounded-xl border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-center">
-
-<div class="flex items-center justify-center space-x-3 w-full sm:w-auto">
-
-<div class="p-2 bg-amber-500/10 rounded-lg text-amber-400">
-
-<i data-lucide="calendar" class="w-5 h-5"></i>
-
-</div>
-
-<div class="text-center sm:text-left">
-
-<h2 class="text-sm font-bold text-amber-400 uppercase tracking-wide text-center sm:text-left">Filtro de Consulta por Meses / Periodo</h2>
-
-<p class="text-xs text-gray-400 text-center sm:text-left">Selecciona el mes y consulta las entradas, salidas e inventario de la categoría seleccionada</p>
-
-</div>
-
-</div>
-
-<div class="flex flex-wrap items-center justify-center gap-3 w-full sm:w-auto">
-
-<div>
-
-<select id="filtroMes" onchange="ejecutarFiltroMes()" class="bg-gray-950 border border-amber-500/40 rounded-lg px-3 py-2 text-xs font-semibold text-amber-300 text-center focus:outline-none focus:border-amber-400 cursor-pointer">
-
-<option value="TODOS">TODOS LOS MESES</option>
-
-<option value="1">ENERO</option>
-
-<option value="2">FEBRERO</option>
-
-<option value="3">MARZO</option>
-
-<option value="4">ABRIL</option>
-
-<option value="5">MAYO</option>
-
-<option value="6">JUNIO</option>
-
-<option value="7">JULIO</option>
-
-<option value="8">AGOSTO</option>
-
-<option value="9">SEPTIEMBRE</option>
-
-<option value="10">OCTUBRE</option>
-
-<option value="11">NOVIEMBRE</option>
-
-<option value="12">DICIEMBRE</option>
-
-</select>
-
-</div>
-
-<div>
-
-<select id="filtroAnio" onchange="ejecutarFiltroMes()" class="bg-gray-950 border border-amber-500/40 rounded-lg px-3 py-2 text-xs font-semibold text-amber-300 text-center focus:outline-none focus:border-amber-400 cursor-pointer"></select>
-
-</div>
-
-<button type="button" onclick="ejecutarFiltroMes()" class="bg-amber-500 hover:bg-amber-400 text-black px-4 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-lg shadow-amber-500/20 cursor-pointer">
-
-<i data-lucide="filter" class="w-4 h-4"></i>
-
-<span>Filtrar por Mes</span>
-
-</button>
-
-</div>
-
-</div>
-
-<!-- MÉTRICAS -->
-
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-
-<div class="glass-panel p-4 rounded-xl relative overflow-hidden text-center">
-
-<div class="flex justify-between items-center">
-
-<div class="text-center w-full">
-
-<p class="text-xs text-gray-400 uppercase font-semibold text-center">Entradas del Mes</p>
-
-<h3 class="text-xl font-bold text-emerald-400 mt-1 text-center" id="metric-entradas-soles">S/ 0.00</h3>
-
-<p class="text-xs text-gray-400 mt-0.5 text-center" id="metric-entradas-unidades">0 Cant.</p>
-
-</div>
-
-<div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20">
-
-<i data-lucide="arrow-down-left" class="w-5 h-5"></i>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="glass-panel p-4 rounded-xl relative overflow-hidden text-center">
-
-<div class="flex justify-between items-center">
-
-<div class="text-center w-full">
-
-<p class="text-xs text-gray-400 uppercase font-semibold text-center">Salidas (Consumo) del Mes</p>
-
-<h3 class="text-xl font-bold text-rose-400 mt-1 text-center" id="metric-salidas-soles">S/ 0.00</h3>
-
-<p class="text-xs text-gray-400 mt-0.5 text-center" id="metric-salidas-unidades">0 Cant.</p>
-
-</div>
-
-<div class="p-2 bg-rose-500/10 rounded-lg text-rose-400 border border-rose-500/20">
-
-<i data-lucide="arrow-up-right" class="w-5 h-5"></i>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="glass-panel p-4 rounded-xl relative overflow-hidden border-amber-500/40 text-center">
-
-<div class="flex justify-between items-center">
-
-<div class="text-center w-full">
-
-<p class="text-xs text-amber-400 uppercase font-semibold text-center">Saldo Stock Disponible</p>
-
-<h3 class="text-xl font-bold text-amber-300 mt-1 text-center" id="metric-saldo-soles">S/ 0.00</h3>
-
-<p class="text-xs text-amber-200/70 mt-0.5 text-center" id="metric-saldo-unidades">0 Cant.</p>
-
-</div>
-
-<div class="p-2 bg-amber-500/10 rounded-lg text-amber-400 border border-amber-500/30">
-
-<i data-lucide="boxes" class="w-5 h-5"></i>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="glass-panel p-4 rounded-xl relative overflow-hidden text-center">
-
-<div class="flex justify-between items-center">
-
-<div class="text-center w-full">
-
-<p class="text-xs text-gray-400 uppercase font-semibold text-center">PRODUCTOS / REGISTROS</p>
-
-<h3 class="text-xl font-bold text-cyan-400 mt-1 text-center" id="metric-total-codigos">0</h3>
-
-<p class="text-xs text-gray-400 mt-0.5 text-center" id="label-metric-modulo">En PRODUCTOS</p>
-
-</div>
-
-<div class="p-2 bg-cyan-500/10 rounded-lg text-cyan-400 border border-cyan-500/20">
-
-<i data-lucide="qr-code" class="w-5 h-5"></i>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- FORMULARIO -->
-
-<div id="panelFormulario" class="glass-panel rounded-xl p-5 shadow-2xl text-center">
-
-<div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
-
-<div class="flex items-center justify-center space-x-2 w-full sm:w-auto">
-
-<i data-lucide="plus-circle" class="w-5 h-5 text-amber-400"></i>
-
-<h2 class="text-base font-bold text-amber-400 tracking-wide uppercase text-center" id="form-titulo">REGISTRAR PRODUCTO EN INVENTARIO</h2>
-
-</div>
-
-<div class="flex items-center justify-center space-x-2 w-full sm:w-auto mt-2 sm:mt-0">
-
-<span id="label-proyecto-actual" class="text-xs font-bold px-3 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/30 rounded-full text-center">PROYECTO: FOX</span>
-
-<span id="label-submodulo-actual" class="text-xs font-bold px-3 py-1 bg-amber-500 text-black rounded-full text-center">PRODUCTOS</span>
-
-</div>
-
-</div>
-
-<form id="formularioProducto" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center" onsubmit="event.preventDefault(); ejecutarRegistroFactura();">
-
-<input type="hidden" id="editId" value="-1">
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">FECHA OPERACIÓN (DD/MM/AAAA) *</label>
-
-<input type="date" id="fechaOperacion" required="" class="w-full bg-gray-950 border border-amber-500/40 rounded-lg px-3 py-2 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-400">
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center" id="lbl-producto">PRODUCTO / DESCRIPCIÓN *</label>
-
-<input type="text" id="nombreProducto" required="" placeholder="Ej. Brocas de 36 MM" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center" id="lbl-codigo">CÓDIGO PRODUCTO *</label>
-
-<input type="text" id="codigoProd" required="" placeholder="Ej. BROCAS 36 MM" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-500 uppercase font-mono">
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center" id="lbl-unidadMedida">UNIDAD DE MEDIDA (TIPO) *</label>
-
-<input type="text" id="unidadMedida" required="" placeholder="Ej. UND, KG, GAL, GLN, CJS, MTR" class="w-full bg-gray-950 border border-amber-500/40 rounded-lg px-3 py-2 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-400 uppercase font-mono">
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">TIPO MOVIMIENTO *</label>
-
-<select id="tipoMovimiento" required="" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500 cursor-pointer">
-
-<option value="ENTRADA">ENTRADA (Aumenta Stock)</option>
-
-<option value="SALIDA">SALIDA (Consumo)</option>
-
-</select>
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center" id="lbl-cantidad">CANTIDAD / UNIDADES *</label>
-
-<input type="number" id="cantidad" required="" min="0.01" step="any" placeholder="0.00" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-gray-300 mb-1 text-center">PRECIO UNITARIO (S/.)
-
-<span class="text-amber-400 text-[10px] font-normal">(Opcional)</span>
-
-</label>
-
-<input type="number" id="precioUnitario" min="0" step="0.01" placeholder="0.00 (Opcional si pendiente)" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
-
-</div>
-
-<div class="text-center">
-
-<label class="block text-xs font-semibold text-cyan-400 mb-1 text-center">CENTRO DE COSTO *</label>
-
-<input type="text" id="centroCosto" required="" placeholder="Ej. CC-01 / MINA" class="w-full bg-gray-950 border border-cyan-500/40 rounded-lg px-3 py-2 text-sm text-cyan-200 text-center focus:outline-none focus:border-cyan-400 uppercase font-mono">
-
-</div>
-
-<div class="lg:col-span-4 text-center">
-
-<label class="block text-xs font-semibold text-amber-300 mb-1 text-center" id="lbl-observacion">OBSERVACIÓN / ENTREGADO A *</label>
-
-<input type="text" id="observacion" required="" placeholder="Ej. Brocas 36 MM entregadas a Gustavo" class="w-full bg-gray-950 border border-amber-500/50 rounded-lg px-3 py-2 text-sm text-amber-200 text-center focus:outline-none focus:border-amber-400">
-
-</div>
-
-<div class="md:col-span-2 lg:col-span-4 flex items-center justify-center space-x-3 pt-2">
-
-<button type="button" onclick="limpiarFormularioConNotificacion()" class="px-4 py-2 border border-gray-700 hover:bg-gray-800 text-gray-300 text-sm font-medium rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer">
-
-<i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-
-<span>Limpiar Campos</span>
-
-</button>
-
-<button type="button" onclick="ejecutarRegistroFactura()" id="btn-submit-form" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm rounded-lg shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer">
-
-<i data-lucide="plus" class="w-4 h-4"></i>
-
-<span id="btn-submit-text">Registrar Registro</span>
-
-</button>
-
-</div>
-
-</form>
-
-</div>
-
-<!-- TABLAS DE CONTENIDO -->
-
-<div class="glass-panel rounded-xl overflow-hidden shadow-2xl text-center">
-
-<div class="flex flex-col sm:flex-row items-center justify-between border-b border-gray-800 p-4 gap-4 bg-gray-950/60 text-center">
-
-<div class="flex flex-wrap items-center justify-center gap-1.5 bg-gray-900 p-1 rounded-lg border border-gray-800 w-full sm:w-auto">
-
-<button type="button" onclick="cambiarModoVista('consolidado')" id="btn-vista-consolidado" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer">
-
-<i data-lucide="layers" class="w-3.5 h-3.5"></i>
-
-<span>INVENTARIO CONSOLIDADO</span>
-
-</button>
-
-<button type="button" onclick="cambiarModoVista('kardex')" id="btn-vista-kardex" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer">
-
-<i data-lucide="history" class="w-3.5 h-3.5"></i>
-
-<span>HISTORIAL KARDEX DETALLADO</span>
-
-</button>
-
-<button type="button" onclick="cambiarModoVista('stock_minimo')" id="btn-vista-stock-minimo" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer">
-
-<i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-400"></i>
-
-<span>STOCK MÍNIMO</span>
-
-<span id="badgeStockMinimo" class="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px] font-mono font-bold ml-1">0</span>
-
-</button>
-
-</div>
-
-<div class="relative w-full sm:w-72">
-
-<input type="text" id="inputBuscador" onkeyup="filtrarTabla()" placeholder="Buscar por Código, Producto o Responsables..." class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-200 text-center focus:outline-none focus:border-amber-500">
-
-<i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-2.5 top-2"></i>
-
-</div>
-
-</div>
-
-<!-- TABLA CONSOLIDADO -->
-
-<div id="vista-consolidado" class="table-container overflow-x-auto p-3">
-
-<table class="w-full text-center text-xs sm:text-sm min-w-[1250px]">
-
-<thead class="bg-gray-950 text-gray-400 text-[11px] uppercase font-semibold border-b border-gray-800 text-center">
-
-<tr>
-
-<th class="px-3 py-3 w-[110px] text-center">Última Fecha</th>
-
-<th class="px-3 py-3 min-w-[180px] text-center">Producto / Descripción</th>
-
-<th class="px-3 py-3 min-w-[120px] text-center">Código</th>
-
-<th class="px-3 py-3 w-[100px] text-amber-400 text-center">Unidad / Medida</th>
-
-<th class="px-3 py-3 text-center w-[120px]">Precio Unit.</th>
-
-<th class="px-3 py-3 text-center w-[85px]">Entrada Total</th>
-
-<th class="px-3 py-3 text-center w-[85px]">Salida Total</th>
-
-<th class="px-3 py-3 text-center w-[85px]">Stock Actual</th>
-
-<th class="px-3 py-3 min-w-[130px] text-cyan-400 text-center">Centro de Costo</th>
-
-<th class="px-3 py-3 min-w-[160px] text-center">Observación / Asignado A</th>
-
-<th class="px-3 py-3 text-center w-[120px]">Acciones</th>
-
-</tr>
-
-</thead>
-
-<tbody id="tbody-consolidado" class="divide-y divide-gray-800 text-gray-300 text-center"></tbody>
-
-</table>
-
-</div>
-
-<!-- TABLA KARDEX -->
-
-<div id="vista-kardex" class="table-container overflow-x-auto p-3 hidden">
-
-<table class="w-full text-center text-xs sm:text-sm min-w-[1300px]">
-
-<thead class="bg-gray-950 text-gray-400 text-[11px] uppercase font-semibold border-b border-gray-800 text-center">
-
-<tr>
-
-<th class="px-3 py-3 w-[110px] text-center">Fecha (DD/MM/AAAA)</th>
-
-<th class="px-3 py-3 min-w-[180px] text-center">Producto / Descripción</th>
-
-<th class="px-3 py-3 min-w-[120px] text-center">Código</th>
-
-<th class="px-3 py-3 w-[100px] text-amber-400 text-center">Unidad / Medida</th>
-
-<th class="px-3 py-3 text-center w-[110px]">Tipo Movimiento</th>
-
-<th class="px-3 py-3 text-center w-[85px]">Cantidad</th>
-
-<th class="px-3 py-3 text-center w-[100px]">Precio Unit.</th>
-
-<th class="px-3 py-3 text-center w-[100px]">Subtotal</th>
-
-<th class="px-3 py-3 min-w-[130px] text-cyan-400 text-center">Centro de Costo</th>
-
-<th class="px-3 py-3 min-w-[160px] text-center">Observación / Asignado A (Detallado)</th>
-
-<th class="px-3 py-3 text-center w-[90px]">Acciones</th>
-
-</tr>
-
-</thead>
-
-<tbody id="tbody-kardex" class="divide-y divide-gray-800 text-gray-300 text-center"></tbody>
-
-</table>
-
-</div>
-
-</div>
-
+<main class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6 text-center">
+  <!-- FILTRO MES/AÑO -->
+  <div class="glass-panel p-4 rounded-xl border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-center">
+    <div class="flex items-center justify-center space-x-3 w-full sm:w-auto">
+      <div class="p-2 bg-amber-500/10 rounded-lg text-amber-400">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+      </div>
+      <div class="text-center sm:text-left">
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wide text-center sm:text-left">Filtro de Consulta por Meses / Periodo</h2>
+        <p class="text-xs text-gray-400 text-center sm:text-left">Selecciona el mes y consulta las entradas, salidas e inventario de la categoría seleccionada</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-3 w-full sm:w-auto">
+      <div>
+        <select id="filtroMes" onchange="ejecutarFiltroMes()" class="bg-gray-950 border border-amber-500/40 rounded-lg px-3 py-2 text-xs font-semibold text-amber-300 text-center focus:outline-none focus:border-amber-400 cursor-pointer">
+          <option value="TODOS">TODOS LOS MESES</option>
+          <option value="1">ENERO</option><option value="2">FEBRERO</option><option value="3">MARZO</option>
+          <option value="4">ABRIL</option><option value="5">MAYO</option><option value="6">JUNIO</option>
+          <option value="7">JULIO</option><option value="8">AGOSTO</option><option value="9">SEPTIEMBRE</option>
+          <option value="10">OCTUBRE</option><option value="11">NOVIEMBRE</option><option value="12">DICIEMBRE</option>
+        </select>
+      </div>
+      <div>
+        <select id="filtroAnio" onchange="ejecutarFiltroMes()" class="bg-gray-950 border border-amber-500/40 rounded-lg px-3 py-2 text-xs font-semibold text-amber-300 text-center focus:outline-none focus:border-amber-400 cursor-pointer"></select>
+      </div>
+      <button type="button" onclick="ejecutarFiltroMes()" class="bg-amber-500 hover:bg-amber-400 text-black px-4 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-lg shadow-amber-500/20 cursor-pointer">
+        <i data-lucide="filter" class="w-4 h-4"></i>
+        <span>Filtrar por Mes</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MÉTRICAS -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+    <div class="glass-panel p-4 rounded-xl relative overflow-hidden text-center">
+      <div class="flex justify-between items-center">
+        <div class="text-center w-full">
+          <p class="text-xs text-gray-400 uppercase font-semibold text-center">Entradas del Mes</p>
+          <h3 class="text-xl font-bold text-emerald-400 mt-1 text-center" id="metric-entradas-soles">S/ 0.00</h3>
+          <p class="text-xs text-gray-400 mt-0.5 text-center" id="metric-entradas-unidades">0 Cant.</p>
+        </div>
+        <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20">
+          <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
+        </div>
+      </div>
+    </div>
+    <div class="glass-panel p-4 rounded-xl relative overflow-hidden text-center">
+      <div class="flex justify-between items-center">
+        <div class="text-center w-full">
+          <p class="text-xs text-gray-400 uppercase font-semibold text-center">Salidas (Consumo) del Mes</p>
+          <h3 class="text-xl font-bold text-rose-400 mt-1 text-center" id="metric-salidas-soles">S/ 0.00</h3>
+          <p class="text-xs text-gray-400 mt-0.5 text-center" id="metric-salidas-unidades">0 Cant.</p>
+        </div>
+        <div class="p-2 bg-rose-500/10 rounded-lg text-rose-400 border border-rose-500/20">
+          <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+        </div>
+      </div>
+    </div>
+    <div class="glass-panel p-4 rounded-xl relative overflow-hidden border-amber-500/40 text-center">
+      <div class="flex justify-between items-center">
+        <div class="text-center w-full">
+          <p class="text-xs text-amber-400 uppercase font-semibold text-center">Saldo Stock Disponible</p>
+          <h3 class="text-xl font-bold text-amber-300 mt-1 text-center" id="metric-saldo-soles">S/ 0.00</h3>
+          <p class="text-xs text-amber-200/70 mt-0.5 text-center" id="metric-saldo-unidades">0 Cant.</p>
+        </div>
+        <div class="p-2 bg-amber-500/10 rounded-lg text-amber-400 border border-amber-500/30">
+          <i data-lucide="boxes" class="w-5 h-5"></i>
+        </div>
+      </div>
+    </div>
+    <div class="glass-panel p-4 rounded-xl relative overflow-hidden text-center">
+      <div class="flex justify-between items-center">
+        <div class="text-center w-full">
+          <p class="text-xs text-gray-400 uppercase font-semibold text-center">PRODUCTOS / REGISTROS</p>
+          <h3 class="text-xl font-bold text-cyan-400 mt-1 text-center" id="metric-total-codigos">0</h3>
+          <p class="text-xs text-gray-400 mt-0.5 text-center" id="label-metric-modulo">En PRODUCTOS</p>
+        </div>
+        <div class="p-2 bg-cyan-500/10 rounded-lg text-cyan-400 border border-cyan-500/20">
+          <i data-lucide="qr-code" class="w-5 h-5"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULARIO (SOLO VISIBLE EN MODO ADMIN) -->
+  <div id="panelFormulario" class="glass-panel rounded-xl p-5 shadow-2xl text-center hidden">
+    <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
+      <div class="flex items-center justify-center space-x-2 w-full sm:w-auto">
+        <i data-lucide="plus-circle" class="w-5 h-5 text-amber-400"></i>
+        <h2 class="text-base font-bold text-amber-400 tracking-wide uppercase text-center" id="form-titulo">REGISTRAR PRODUCTO EN INVENTARIO</h2>
+      </div>
+      <div class="flex items-center justify-center space-x-2 w-full sm:w-auto mt-2 sm:mt-0">
+        <span id="label-proyecto-actual" class="text-xs font-bold px-3 py-1 bg-amber-500/10 text-amber-300 border border-amber-500/30 rounded-full text-center">PROYECTO: FOX</span>
+        <span id="label-submodulo-actual" class="text-xs font-bold px-3 py-1 bg-amber-500 text-black rounded-full text-center">PRODUCTOS</span>
+      </div>
+    </div>
+    <form id="formularioProducto" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center" onsubmit="event.preventDefault(); ejecutarRegistroFactura();">
+      <input type="hidden" id="editId" value="-1">
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">FECHA OPERACIÓN (DD/MM/AAAA) *</label>
+        <input type="date" id="fechaOperacion" required class="w-full bg-gray-950 border border-amber-500/40 rounded-lg px-3 py-2 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-400">
+      </div>
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">PRODUCTO / DESCRIPCIÓN *</label>
+        <input type="text" id="nombreProducto" required placeholder="Ej. Brocas de 36 MM" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
+      </div>
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">CÓDIGO PRODUCTO *</label>
+        <input type="text" id="codigoProd" required placeholder="Ej. BROCAS 36 MM" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-500 uppercase font-mono">
+      </div>
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">UNIDAD DE MEDIDA (TIPO) *</label>
+        <input type="text" id="unidadMedida" required placeholder="Ej. UND, KG, GAL, GLN" class="w-full bg-gray-950 border border-amber-500/40 rounded-lg px-3 py-2 text-sm text-amber-300 text-center focus:outline-none focus:border-amber-400 uppercase font-mono">
+      </div>
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">TIPO MOVIMIENTO *</label>
+        <select id="tipoMovimiento" required class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500 cursor-pointer">
+          <option value="ENTRADA">ENTRADA (Aumenta Stock)</option>
+          <option value="SALIDA">SALIDA (Consumo)</option>
+        </select>
+      </div>
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">CANTIDAD / UNIDADES *</label>
+        <input type="number" id="cantidad" required min="0.01" step="any" placeholder="0.00" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
+      </div>
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-gray-300 mb-1 text-center">PRECIO UNITARIO (S/.) <span class="text-amber-400 text-[10px]">(Opcional)</span></label>
+        <input type="number" id="precioUnitario" min="0" step="0.01" placeholder="0.00" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 text-center focus:outline-none focus:border-amber-500">
+      </div>
+      <div class="text-center">
+        <label class="block text-xs font-semibold text-cyan-400 mb-1 text-center">CENTRO DE COSTO *</label>
+        <input type="text" id="centroCosto" required placeholder="Ej. CC-01 / MINA" class="w-full bg-gray-950 border border-cyan-500/40 rounded-lg px-3 py-2 text-sm text-cyan-200 text-center focus:outline-none focus:border-cyan-400 uppercase font-mono">
+      </div>
+      <div class="lg:col-span-4 text-center">
+        <label class="block text-xs font-semibold text-amber-300 mb-1 text-center">OBSERVACIÓN / ENTREGADO A *</label>
+        <input type="text" id="observacion" required placeholder="Ej. Brocas 36 MM entregadas a Gustavo" class="w-full bg-gray-950 border border-amber-500/50 rounded-lg px-3 py-2 text-sm text-amber-200 text-center focus:outline-none focus:border-amber-400">
+      </div>
+      <div class="md:col-span-2 lg:col-span-4 flex items-center justify-center space-x-3 pt-2">
+        <button type="button" onclick="limpiarFormulario()" class="px-4 py-2 border border-gray-700 hover:bg-gray-800 text-gray-300 text-sm font-medium rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <span>Limpiar Campos</span>
+        </button>
+        <button type="button" onclick="ejecutarRegistroFactura()" id="btn-submit-form" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm rounded-lg shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span id="btn-submit-text">Registrar Registro</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- TABLAS DE CONTENIDO -->
+  <div class="glass-panel rounded-xl overflow-hidden shadow-2xl text-center">
+    <div class="flex flex-col sm:flex-row items-center justify-between border-b border-gray-800 p-4 gap-4 bg-gray-950/60 text-center">
+      <div class="flex flex-wrap items-center justify-center gap-1.5 bg-gray-900 p-1 rounded-lg border border-gray-800 w-full sm:w-auto">
+        <button type="button" onclick="cambiarModoVista('consolidado')" id="btn-vista-consolidado" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+          <span>INVENTARIO CONSOLIDADO</span>
+        </button>
+        <button type="button" onclick="cambiarModoVista('kardex')" id="btn-vista-kardex" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer">
+          <i data-lucide="history" class="w-3.5 h-3.5"></i>
+          <span>HISTORIAL KARDEX DETALLADO</span>
+        </button>
+        <button type="button" onclick="cambiarModoVista('stock_minimo')" id="btn-vista-stock-minimo" class="px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer">
+          <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-400"></i>
+          <span>STOCK MÍNIMO</span>
+          <span id="badgeStockMinimo" class="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px] font-mono font-bold ml-1">0</span>
+        </button>
+      </div>
+      <div class="relative w-full sm:w-72">
+        <input type="text" id="inputBuscador" onkeyup="filtrarTabla()" placeholder="Buscar por Código, Producto o Responsables..." class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-200 text-center focus:outline-none focus:border-amber-500">
+        <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-2.5 top-2"></i>
+      </div>
+    </div>
+
+    <div id="vista-consolidado" class="table-container overflow-x-auto p-3">
+      <table class="w-full text-center text-xs sm:text-sm min-w-[1250px]">
+        <thead class="bg-gray-950 text-gray-400 text-[11px] uppercase font-semibold border-b border-gray-800 text-center">
+          <tr>
+            <th class="px-3 py-3 w-[110px] text-center">Última Fecha</th>
+            <th class="px-3 py-3 min-w-[180px] text-center">Producto / Descripción</th>
+            <th class="px-3 py-3 min-w-[120px] text-center">Código</th>
+            <th class="px-3 py-3 w-[100px] text-amber-400 text-center">Unidad / Medida</th>
+            <th class="px-3 py-3 text-center w-[120px]">Precio Unit.</th>
+            <th class="px-3 py-3 text-center w-[85px]">Entrada Total</th>
+            <th class="px-3 py-3 text-center w-[85px]">Salida Total</th>
+            <th class="px-3 py-3 text-center w-[85px]">Stock Actual</th>
+            <th class="px-3 py-3 min-w-[130px] text-cyan-400 text-center">Centro de Costo</th>
+            <th class="px-3 py-3 min-w-[160px] text-center">Observación / Asignado A</th>
+            <th class="px-3 py-3 text-center w-[120px]">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-consolidado" class="divide-y divide-gray-800 text-gray-300 text-center"></tbody>
+      </table>
+    </div>
+
+    <div id="vista-kardex" class="table-container overflow-x-auto p-3 hidden">
+      <table class="w-full text-center text-xs sm:text-sm min-w-[1300px]">
+        <thead class="bg-gray-950 text-gray-400 text-[11px] uppercase font-semibold border-b border-gray-800 text-center">
+          <tr>
+            <th class="px-3 py-3 w-[110px] text-center">Fecha (DD/MM/AAAA)</th>
+            <th class="px-3 py-3 min-w-[180px] text-center">Producto / Descripción</th>
+            <th class="px-3 py-3 min-w-[120px] text-center">Código</th>
+            <th class="px-3 py-3 w-[100px] text-amber-400 text-center">Unidad / Medida</th>
+            <th class="px-3 py-3 text-center w-[110px]">Tipo Movimiento</th>
+            <th class="px-3 py-3 text-center w-[85px]">Cantidad</th>
+            <th class="px-3 py-3 text-center w-[100px]">Precio Unit.</th>
+            <th class="px-3 py-3 text-center w-[100px]">Subtotal</th>
+            <th class="px-3 py-3 min-w-[130px] text-cyan-400 text-center">Centro de Costo</th>
+            <th class="px-3 py-3 min-w-[160px] text-center">Observación / Asignado A</th>
+            <th class="px-3 py-3 text-center w-[90px]">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-kardex" class="divide-y divide-gray-800 text-gray-300 text-center"></tbody>
+      </table>
+    </div>
+  </div>
 </main>
 
 <!-- MODAL IMPORTACIÓN EXCEL -->
-
 <div id="modalImportar" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-
-<div class="glass-panel max-w-lg w-full rounded-xl p-6 border border-amber-500/40 shadow-2xl relative text-center">
-
-<button type="button" onclick="cerrarModalImportar()" class="absolute top-4 right-4 text-gray-400 hover:text-white cursor-pointer">
-
-<i data-lucide="x" class="w-5 h-5"></i>
-
-</button>
-
-<div class="flex items-center justify-center space-x-3 border-b border-gray-800 pb-3 mb-4">
-
-<div class="p-2 bg-amber-500/10 rounded-lg text-amber-400">
-
-<i data-lucide="file-up" class="w-6 h-6"></i>
-
+  <div class="glass-panel max-w-lg w-full rounded-xl p-6 border border-amber-500/40 shadow-2xl relative text-center">
+    <button type="button" onclick="cerrarModalImportar()" class="absolute top-4 right-4 text-gray-400 hover:text-white cursor-pointer">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+    <div class="flex items-center justify-center space-x-3 border-b border-gray-800 pb-3 mb-4">
+      <div class="p-2 bg-amber-500/10 rounded-lg text-amber-400">
+        <i data-lucide="file-up" class="w-6 h-6"></i>
+      </div>
+      <div class="text-center">
+        <h3 class="text-base font-bold text-amber-400 text-center">IMPORTAR INVENTARIO DESDE EXCEL</h3>
+        <p class="text-xs text-gray-400 text-center">Carga masiva manteniendo fechas y decimales</p>
+      </div>
+    </div>
+    <div class="space-y-4 text-xs text-gray-300 text-center">
+      <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 font-mono text-amber-300 overflow-x-auto text-center">Fecha (DD/MM/AAAA) | Producto | Código | UnidadMedida | Cantidad | PrecioUnitario | Tipo | CentroDeCosto | Observacion</div>
+      <div class="bg-amber-500/10 border border-amber-500/30 p-3 rounded-lg text-amber-200 text-center">
+        Los registros se subirán en vivo a: <strong><span id="modal-proyecto-nombre">PROYECTO FOX - PRODUCTOS</span></strong>.
+      </div>
+      <div class="pt-2 flex flex-col space-y-2">
+        <button type="button" onclick="descargarPlantillaExcel()" class="w-full py-2 bg-gray-800 hover:bg-gray-700 text-amber-400 border border-amber-500/30 font-medium rounded-lg transition flex items-center justify-center space-x-2 cursor-pointer">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Descargar Plantilla Excel (.xlsx)</span>
+        </button>
+        <label class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg cursor-pointer transition flex items-center justify-center space-x-2">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <span>Seleccionar y Subir Archivo Excel</span>
+          <input type="file" id="inputExcel" accept=".xlsx, .xls, .csv" onchange="procesarArchivoExcel(event)" class="hidden">
+        </label>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="text-center">
-
-<h3 class="text-base font-bold text-amber-400 text-center">IMPORTAR INVENTARIO DESDE EXCEL</h3>
-
-<p class="text-xs text-gray-400 text-center">Carga masiva manteniendo las fechas exactas DD/MM/AAAA y decimales</p>
-
-</div>
-
-</div>
-
-<div class="space-y-4 text-xs text-gray-300 text-center">
-
-<p class="text-center">Asegúrate de que el archivo contenga las siguientes columnas exactas en la primera fila:</p>
-
-<div class="bg-gray-950 p-3 rounded-lg border border-gray-800 font-mono text-amber-300 overflow-x-auto text-center">Fecha (DD/MM/AAAA) | Producto | Código | UnidadMedida | Cantidad | PrecioUnitario | Tipo | CentroDeCosto | Observacion</div>
-
-<div class="bg-amber-500/10 border border-amber-500/30 p-3 rounded-lg text-amber-200 text-center">
-
-<i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
-
-Los registros cargados se consolidarán en:
-
-<strong>
-
-<span id="modal-proyecto-nombre">PROYECTO FOX - PRODUCTOS</span>
-
-</strong>.
-
-</div>
-
-<div class="pt-2 flex flex-col space-y-2">
-
-<button type="button" onclick="descargarPlantillaExcel()" class="w-full py-2 bg-gray-800 hover:bg-gray-700 text-amber-400 border border-amber-500/30 font-medium rounded-lg transition flex items-center justify-center space-x-2 cursor-pointer">
-
-<i data-lucide="download" class="w-4 h-4"></i>
-
-<span>Descargar Plantilla Excel (.xlsx)</span>
-
-</button>
-
-<label class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg cursor-pointer transition flex items-center justify-center space-x-2">
-
-<i data-lucide="upload" class="w-4 h-4"></i>
-
-<span>Seleccionar y Subir Archivo Excel</span>
-
-<input type="file" id="inputExcel" accept=".xlsx, .xls, .csv" onchange="procesarArchivoExcel(event)" class="hidden">
-
-</label>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- SCRIPT DE LÓGICA INTEGRAL -->
-
-<script>const PROYECTOS = ['FOX', 'JESUS', 'SAN_JACINTO', 'RAMPA', 'PACKSACK'];
-
+<script>
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHtyMkq3jWcSn2v1OB15og-0dMEhnegIe5mQWba-B4hkqlmKAJNepMinDJ7Svo9iyGmg/exec";
+const PROYECTOS = ['FOX', 'JESUS', 'SAN_JACINTO', 'RAMPA', 'PACKSACK'];
 const MAPA_SUBMODULOS = {
-
-'FOX': ['PRODUCTOS', 'COMBUSTIBLE', 'MENU', 'GASOLINA'],
-
-'JESUS': ['PRODUCTOS', 'COMBUSTIBLE', 'MENU', 'GASOLINA'],
-
-'SAN_JACINTO': ['PRODUCTOS', 'COMBUSTIBLE', 'MENU', 'GASOLINA'],
-
-'RAMPA': ['PRODUCTOS'],
-
-'PACKSACK': ['PRODUCTOS']
-
+    'FOX': ['PRODUCTOS', 'COMBUSTIBLE', 'MENU', 'GASOLINA'],
+    'JESUS': ['PRODUCTOS', 'COMBUSTIBLE', 'MENU', 'GASOLINA'],
+    'SAN_JACINTO': ['PRODUCTOS', 'COMBUSTIBLE', 'MENU', 'GASOLINA'],
+    'RAMPA': ['PRODUCTOS'],
+    'PACKSACK': ['PRODUCTOS']
 };
-
 const CONFIG_SUBMODULOS = {
-
-'PRODUCTOS': { icono: 'package', label: '1) PRODUCTOS' },
-
-'COMBUSTIBLE': { icono: 'fuel', label: '2) COMBUSTIBLE' },
-
-'MENU': { icono: 'bomb', label: '3) EXPLOSIVOS' },
-
-'GASOLINA': { icono: 'flame', label: '4) GASOLINA' }
-
+    'PRODUCTOS': { icono: 'package', label: '1) PRODUCTOS' },
+    'COMBUSTIBLE': { icono: 'fuel', label: '2) COMBUSTIBLE' },
+    'MENU': { icono: 'bomb', label: '3) EXPLOSIVOS' },
+    'GASOLINA': { icono: 'flame', label: '4) GASOLINA' }
 };
 
 let proyectoActual = 'FOX';
-
 let submoduloActual = 'PRODUCTOS';
-
 let modoVista = 'consolidado';
-
-let rolUsuarioActual = null;
-
-let usuariosSistema = {
-
-admin: { password: 'admin', passAlt: '201294', rol: 'admin', nombre: 'Administrador' },
-
-usuario: { password: '1234', passAlt: '', rol: 'usuario', nombre: 'Usuario Consulta' }
-
-};
-
+let esAdmin = false;
 let baseDatos = {};
 
 function inicializarEstructuraBaseDatos() {
-
-PROYECTOS.forEach(p => {
-
-if (!baseDatos[p]) baseDatos[p] = {};
-
-MAPA_SUBMODULOS[p].forEach(s => {
-
-if (!baseDatos[p][s]) baseDatos[p][s] = { facturas: [], kardex: [] };
-
-});
-
-});
-
+    PROYECTOS.forEach(p => {
+        if (!baseDatos[p]) baseDatos[p] = {};
+        MAPA_SUBMODULOS[p].forEach(s => {
+            if (!baseDatos[p][s]) baseDatos[p][s] = { facturas: [], kardex: [] };
+        });
+    });
 }
 
 function mostrarNotificacion(titulo, texto, icono) {
-
-if (typeof Swal !== 'undefined') {
-
-Swal.fire({
-
-title: titulo,
-
-text: texto,
-
-icon: icono,
-
-confirmButtonColor: '#d4af37',
-
-background: '#111827',
-
-color: '#f3f4f6'
-
-});
-
-} else {
-
-alert(`${titulo}: ${texto}`);
-
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({ title: titulo, text: texto, icon: icono, confirmButtonColor: '#d4af37', background: '#111827', color: '#f3f4f6' });
+    } else {
+        alert(`${titulo}: ${texto}`);
+    }
 }
 
-}
-
-function redondear2Dec(num) {
-
-return Math.round((Number(num) + Number.EPSILON) * 100) / 100;
-
-}
-
+function redondear2Dec(num) { return Math.round((Number(num) + Number.EPSILON) * 100) / 100; }
 function parsearCantidadDecimal(val) {
-
-if (val === undefined || val === null || val === '') return 0;
-
-let str = String(val).trim().replace(',', '.');
-
-let num = parseFloat(str);
-
-return isNaN(num) ? 0 : Math.abs(redondear2Dec(num));
-
+    if (val === undefined || val === null || val === '') return 0;
+    let num = parseFloat(String(val).trim().replace(',', '.'));
+    return isNaN(num) ? 0 : Math.abs(redondear2Dec(num));
 }
-
 function formatearCantidadVisual(num) {
-
-const val = redondear2Dec(num);
-
-return Number.isInteger(val) ? val.toString() : val.toFixed(2);
-
+    const val = redondear2Dec(num);
+    return Number.isInteger(val) ? val.toString() : val.toFixed(2);
 }
-
 function formatearSoles(monto) {
-
-const esNegativo = monto < 0;
-
-const valorAbsoluto = Math.abs(monto);
-
-const numeroFormateado = valorAbsoluto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-return esNegativo ? `-S/ ${numeroFormateado}` : `S/ ${numeroFormateado}`;
-
+    const esNegativo = monto < 0;
+    const numeroFormateado = Math.abs(monto).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return esNegativo ? `-S/ ${numeroFormateado}` : `S/ ${numeroFormateado}`;
 }
 
 function normalizarFechaLiteral(valRaw) {
-
-if (!valRaw) return new Date().toLocaleDateString('es-PE');
-
-if (typeof valRaw === 'number' || (!isNaN(valRaw) && Number(valRaw) > 30000 && Number(valRaw) < 60000)) {
-
-let num = Number(valRaw);
-
-let dateObj = new Date(Math.round((num - 25569) * 86400 * 1000));
-
-let d = dateObj.getUTCDate().toString().padStart(2, '0');
-
-let m = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
-
-let a = dateObj.getUTCFullYear();
-
-return `${d}/${m}/${a}`;
-
-}
-
-let s = String(valRaw).trim();
-
-if (s.includes('/')) {
-
-let p = s.split('/');
-
-if (p.length === 3) {
-
-let d = parseInt(p[0], 10);
-
-let m = parseInt(p[1], 10);
-
-let a = parseInt(p[2], 10);
-
-if (a < 100) a = a < 50 ? 2000 + a : 1900 + a;
-
-if (m > 12) { let tmp = d; d = m; m = tmp; }
-
-return `${d.toString().padStart(2, '0')}/${m.toString().padStart(2, '0')}/${a}`;
-
-}
-
-} else if (s.includes('-')) {
-
-let p = s.split('-');
-
-if (p.length === 3) {
-
-if (p[0].length === 4) return `${p[2].padStart(2, '0')}/${p[1].padStart(2, '0')}/${p[0]}`;
-
-else return `${p[0].padStart(2, '0')}/${p[1].padStart(2, '0')}/${p[2]}`;
-
-}
-
-}
-
-return s;
-
+    if (!valRaw) return new Date().toLocaleDateString('es-PE');
+    if (typeof valRaw === 'number' || (!isNaN(valRaw) && Number(valRaw) > 30000 && Number(valRaw) < 60000)) {
+        let dateObj = new Date(Math.round((Number(valRaw) - 25569) * 86400 * 1000));
+        return `${dateObj.getUTCDate().toString().padStart(2, '0')}/${(dateObj.getUTCMonth() + 1).toString().padStart(2, '0')}/${dateObj.getUTCFullYear()}`;
+    }
+    let s = String(valRaw).trim();
+    if (s.includes('/')) {
+        let p = s.split('/');
+        if (p.length === 3) {
+            let d = parseInt(p[0], 10), m = parseInt(p[1], 10), a = parseInt(p[2], 10);
+            if (a < 100) a = a < 50 ? 2000 + a : 1900 + a;
+            if (m > 12) { let tmp = d; d = m; m = tmp; }
+            return `${d.toString().padStart(2, '0')}/${m.toString().padStart(2, '0')}/${a}`;
+        }
+    } else if (s.includes('-')) {
+        let p = s.split('-');
+        if (p.length === 3) return p[0].length === 4 ? `${p[2].padStart(2, '0')}/${p[1].padStart(2, '0')}/${p[0]}` : `${p[0].padStart(2, '0')}/${p[1].padStart(2, '0')}/${p[2]}`;
+    }
+    return s;
 }
 
 function obtenerTimestampDesdeFechaStr(fechaStr) {
-
-if (!fechaStr || typeof fechaStr !== 'string') return 0;
-
-const partes = fechaStr.split('/');
-
-if (partes.length === 3) {
-
-const dia = parseInt(partes[0], 10);
-
-const mes = parseInt(partes[1], 10) - 1;
-
-const anio = parseInt(partes[2], 10);
-
-return new Date(anio, mes, dia).getTime();
-
+    if (!fechaStr || typeof fechaStr !== 'string') return 0;
+    const partes = fechaStr.split('/');
+    if (partes.length === 3) return new Date(parseInt(partes[2], 10), parseInt(partes[1], 10) - 1, parseInt(partes[0], 10)).getTime();
+    return 0;
 }
-
-return 0;
-
-}
-
-/* RECALCULAR CONSOLIDADO FILTRADO O GLOBAL */
 
 function recalcularConsolidadoDesdeKardex() {
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-if (!subData) return;
-
-const filtroM = document.getElementById('filtroMes') ? document.getElementById('filtroMes').value : 'TODOS';
-
-const filtroA = document.getElementById('filtroAnio') ? document.getElementById('filtroAnio').value : 'TODOS';
-
-let mapaFacturas = {};
-
-// Ordenar kardex de forma cronológica ascendente para procesar acumulados
-
-let kardexOrdenado = [...subData.kardex].sort((a, b) => obtenerTimestampDesdeFechaStr(a.fecha) - obtenerTimestampDesdeFechaStr(b.fecha));
-
-kardexOrdenado.forEach(k => {
-
-const codKey = String(k.codigo || '').trim().toUpperCase();
-
-if (!codKey) return;
-
-let coincideMes = (filtroM === 'TODOS' || String(k.mes) === filtroM);
-
-let coincideAnio = (filtroA === 'TODOS' || String(k.anio) === filtroA);
-
-if (!mapaFacturas[codKey]) {
-
-mapaFacturas[codKey] = {
-
-id: k.id,
-
-fecha: k.fecha,
-
-fechaIso: k.fechaIso,
-
-mes: k.mes,
-
-anio: k.anio,
-
-nombre: k.nombre,
-
-codigo: codKey,
-
-unidadMedida: k.unidadMedida || 'UND',
-
-precioUnitario: k.precioUnitario || 0,
-
-entradas: 0,
-
-salidas: 0,
-
-stock: 0,
-
-centroCosto: k.centroCosto,
-
-observacion: k.observacion,
-
-tieneMovimientoEnFiltro: false
-
-};
-
+    let subData = baseDatos[proyectoActual][submoduloActual];
+    if (!subData) return;
+    const filtroM = document.getElementById('filtroMes') ? document.getElementById('filtroMes').value : 'TODOS';
+    const filtroA = document.getElementById('filtroAnio') ? document.getElementById('filtroAnio').value : 'TODOS';
+    let mapaFacturas = {};
+    let kardexOrdenado = [...subData.kardex].sort((a, b) => obtenerTimestampDesdeFechaStr(a.fecha) - obtenerTimestampDesdeFechaStr(b.fecha));
+    kardexOrdenado.forEach(k => {
+        const codKey = String(k.codigo || '').trim().toUpperCase();
+        if (!codKey) return;
+        let coincideMes = (filtroM === 'TODOS' || String(k.mes) === filtroM);
+        let coincideAnio = (filtroA === 'TODOS' || String(k.anio) === filtroA);
+        if (!mapaFacturas[codKey]) {
+            mapaFacturas[codKey] = {
+                id: k.id, fecha: k.fecha, fechaIso: k.fechaIso, mes: k.mes, anio: k.anio,
+                nombre: k.nombre, codigo: codKey, unidadMedida: k.unidadMedida || 'UND',
+                precioUnitario: k.precioUnitario || 0, entradas: 0, salidas: 0, stock: 0,
+                centroCosto: k.centroCosto, observacion: k.observacion, tieneMovimientoEnFiltro: false
+            };
+        }
+        let f = mapaFacturas[codKey];
+        if (coincideMes && coincideAnio) {
+            f.tieneMovimientoEnFiltro = true;
+            f.fecha = k.fecha; f.fechaIso = k.fechaIso; f.mes = k.mes; f.anio = k.anio;
+            if (k.nombre && k.nombre !== 'Sin Descripción') f.nombre = k.nombre;
+            if (k.unidadMedida && k.unidadMedida !== 'UND') f.unidadMedida = k.unidadMedida;
+            if (k.precioUnitario > 0) f.precioUnitario = k.precioUnitario;
+            if (k.centroCosto) f.centroCosto = k.centroCosto;
+            if (k.observacion) f.observacion = k.observacion;
+            if (k.tipo === 'ENTRADA') f.entradas = redondear2Dec(f.entradas + k.cantidad);
+            else if (k.tipo === 'SALIDA') f.salidas = redondear2Dec(f.salidas + k.cantidad);
+            f.stock = Math.max(0, redondear2Dec(f.entradas - f.salidas));
+        }
+    });
+    let listaConsolidada = Object.values(mapaFacturas);
+    if (filtroM !== 'TODOS' || filtroA !== 'TODOS') listaConsolidada = listaConsolidada.filter(f => f.tieneMovimientoEnFiltro);
+    subData.facturas = listaConsolidada.sort((a, b) => obtenerTimestampDesdeFechaStr(b.fecha) - obtenerTimestampDesdeFechaStr(a.fecha));
 }
 
-let f = mapaFacturas[codKey];
-
-if (coincideMes && coincideAnio) {
-
-f.tieneMovimientoEnFiltro = true;
-
-f.fecha = k.fecha;
-
-f.fechaIso = k.fechaIso;
-
-f.mes = k.mes;
-
-f.anio = k.anio;
-
-if (k.nombre && k.nombre !== 'Sin Descripción') f.nombre = k.nombre;
-
-if (k.unidadMedida && k.unidadMedida !== 'UND') f.unidadMedida = k.unidadMedida;
-
-if (k.precioUnitario > 0) f.precioUnitario = k.precioUnitario;
-
-if (k.centroCosto) f.centroCosto = k.centroCosto;
-
-if (k.observacion) f.observacion = k.observacion;
-
-if (k.tipo === 'ENTRADA') f.entradas = redondear2Dec(f.entradas + k.cantidad);
-
-else if (k.tipo === 'SALIDA') f.salidas = redondear2Dec(f.salidas + k.cantidad);
-
-f.stock = Math.max(0, redondear2Dec(f.entradas - f.salidas));
-
-}
-
-});
-
-// Filtrar productos con movimientos en el período seleccionado si aplica filtro de fecha
-
-let listaConsolidada = Object.values(mapaFacturas);
-
-if (filtroM !== 'TODOS' || filtroA !== 'TODOS') {
-
-listaConsolidada = listaConsolidada.filter(f => f.tieneMovimientoEnFiltro);
-
-}
-
-// Ordenar de más reciente a más antiguo por la última fecha registrada
-
-subData.facturas = listaConsolidada.sort((a, b) => obtenerTimestampDesdeFechaStr(b.fecha) - obtenerTimestampDesdeFechaStr(a.fecha));
-
-}
+function abrirModalLogin() { document.getElementById('modalLogin').classList.remove('hidden'); }
+function cerrarModalLogin() { document.getElementById('modalLogin').classList.add('hidden'); }
 
 function iniciarSesion(event) {
-
-if (event) event.preventDefault();
-
-const userVal = document.getElementById('loginUsuario').value.trim().toLowerCase();
-
-const passVal = document.getElementById('loginPassword').value.trim();
-
-if (!userVal || !passVal) {
-
-mostrarNotificacion('Campos Requeridos', 'Por favor completa el usuario y la contraseña.', 'warning');
-
-return;
-
-}
-
-const targetUser = usuariosSistema[userVal];
-
-if (targetUser && (targetUser.password === passVal || (targetUser.passAlt && targetUser.passAlt === passVal))) {
-
-rolUsuarioActual = targetUser.rol;
-
-sessionStorage.setItem('MINERAL_PERU_ROL', rolUsuarioActual);
-
-document.getElementById('modalLogin').classList.add('hidden');
-
-aplicarPermisosRol();
-
-mostrarNotificacion('Acceso Concedido', `Bienvenido: ${targetUser.nombre}`, 'success');
-
-} else {
-
-mostrarNotificacion('Acceso Denegado', 'Credenciales incorrectas.\n\nUsuario: admin\nContraseña: admin o 201294', 'error');
-
-}
-
+    if (event) event.preventDefault();
+    const userVal = document.getElementById('loginUsuario').value.trim().toLowerCase();
+    const passVal = document.getElementById('loginPassword').value.trim();
+    if (userVal === 'admin' && (passVal === 'admin' || passVal === '201294')) {
+        esAdmin = true;
+        sessionStorage.setItem('MINERAL_PERU_ADMIN', 'true');
+        cerrarModalLogin();
+        aplicarPermisosRol();
+        mostrarNotificacion('Modo Admin Activado', 'Ahora puedes registrar, editar e importar datos.', 'success');
+    } else {
+        mostrarNotificacion('Error', 'Usuario: admin | Contraseña: admin o 201294', 'error');
+    }
 }
 
 function cerrarSesion() {
-
-sessionStorage.removeItem('MINERAL_PERU_ROL');
-
-rolUsuarioActual = null;
-
-document.getElementById('modalLogin').classList.remove('hidden');
-
-document.getElementById('formLogin').reset();
-
+    esAdmin = false;
+    sessionStorage.removeItem('MINERAL_PERU_ADMIN');
+    aplicarPermisosRol();
 }
 
 function aplicarPermisosRol() {
+    const btnLogin = document.getElementById('btnAbrirLogin');
+    const infoSesion = document.getElementById('usuarioSesionInfo');
+    const btnImportar = document.getElementById('btnImportarExcel');
+    const btnGuardar = document.getElementById('btnGuardarCambios');
+    const btnLimpiar = document.getElementById('btnLimpiarDatos');
+    const panelForm = document.getElementById('panelFormulario');
 
-const infoSesion = document.getElementById('usuarioSesionInfo');
-
-const txtRol = document.getElementById('txtRolUsuario');
-
-const btnImportar = document.getElementById('btnImportarExcel');
-
-const btnGuardar = document.getElementById('btnGuardarCambios');
-
-const btnLimpiar = document.getElementById('btnLimpiarDatos');
-
-const panelForm = document.getElementById('panelFormulario');
-
-if (infoSesion) {
-
-infoSesion.classList.remove('hidden');
-
-infoSesion.classList.add('flex');
-
+    if (esAdmin) {
+        btnLogin.classList.add('hidden');
+        infoSesion.classList.remove('hidden'); infoSesion.classList.add('flex');
+        btnImportar.classList.remove('hidden'); btnImportar.classList.add('flex');
+        btnGuardar.classList.remove('hidden'); btnGuardar.classList.add('flex');
+        btnLimpiar.classList.remove('hidden'); btnLimpiar.classList.add('flex');
+        panelForm.classList.remove('hidden');
+    } else {
+        btnLogin.classList.remove('hidden');
+        infoSesion.classList.add('hidden'); infoSesion.classList.remove('flex');
+        btnImportar.classList.add('hidden'); btnImportar.classList.remove('flex');
+        btnGuardar.classList.add('hidden'); btnGuardar.classList.remove('flex');
+        btnLimpiar.classList.add('hidden'); btnLimpiar.classList.remove('flex');
+        panelForm.classList.add('hidden');
+    }
+    actualizarInterfaz();
 }
 
-if (rolUsuarioActual === 'admin') {
-
-if (txtRol) txtRol.innerText = 'ADMINISTRADOR';
-
-if (btnImportar) btnImportar.classList.remove('hidden');
-
-if (btnGuardar) btnGuardar.classList.remove('hidden');
-
-if (btnLimpiar) btnLimpiar.classList.remove('hidden');
-
-if (panelForm) panelForm.classList.remove('hidden');
-
-} else {
-
-if (txtRol) txtRol.innerText = 'USUARIO (SOLO LECTURA)';
-
-if (btnImportar) btnImportar.classList.add('hidden');
-
-if (btnGuardar) btnGuardar.classList.add('hidden');
-
-if (btnLimpiar) btnLimpiar.classList.add('hidden');
-
-if (panelForm) panelForm.classList.add('hidden');
-
-}
-
-actualizarInterfaz();
-
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-
-inicializarEstructuraBaseDatos();
-
-inicializarAniosFiltro();
-
-establecerFechaHoy();
-
-cargarDatosGuardados();
-
-const sesionGuardada = sessionStorage.getItem('MINERAL_PERU_ROL');
-
-if (sesionGuardada && (sesionGuardada === 'admin' || sesionGuardada === 'usuario')) {
-
-rolUsuarioActual = sesionGuardada;
-
-document.getElementById('modalLogin').classList.add('hidden');
-
-aplicarPermisosRol();
-
-} else {
-
-rolUsuarioActual = null;
-
-document.getElementById('modalLogin').classList.remove('hidden');
-
-}
-
-cambiarProyecto(proyectoActual);
-
-actualizarInterfaz();
-
-if (typeof lucide !== 'undefined') lucide.createIcons();
-
+document.addEventListener('DOMContentLoaded', async () => {
+    inicializarEstructuraBaseDatos();
+    inicializarAniosFiltro();
+    establecerFechaHoy();
+    if (sessionStorage.getItem('MINERAL_PERU_ADMIN') === 'true') esAdmin = true;
+    aplicarPermisosRol();
+    cambiarProyecto(proyectoActual);
+    await cargarDatosGuardados(false);
+    // Sincronización automática en tiempo real cada 10 segundos para espectadores
+    setInterval(() => { if (!esAdmin) cargarDatosGuardados(false); }, 10000);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 });
 
 function establecerFechaHoy() {
-
-const hoy = new Date().toISOString().split('T')[0];
-
-const el = document.getElementById('fechaOperacion');
-
-if (el) el.value = hoy;
-
+    const el = document.getElementById('fechaOperacion');
+    if (el) el.value = new Date().toISOString().split('T')[0];
 }
 
 function inicializarAniosFiltro() {
-
-const selectAnio = document.getElementById('filtroAnio');
-
-if (!selectAnio) return;
-
-selectAnio.innerHTML = `<option value="TODOS">TODOS LOS AÑOS</option>`;
-
-for (let a = 2050; a >= 2020; a--) {
-
-selectAnio.innerHTML += `<option value="${a}">${a}</option>`;
-
-}
-
-selectAnio.value = "TODOS";
-
+    const selectAnio = document.getElementById('filtroAnio');
+    if (!selectAnio) return;
+    selectAnio.innerHTML = `<option value="TODOS">TODOS LOS AÑOS</option>`;
+    for (let a = 2050; a >= 2020; a--) selectAnio.innerHTML += `<option value="${a}">${a}</option>`;
+    selectAnio.value = "TODOS";
 }
 
 function cambiarProyecto(proyecto) {
-
-if (!PROYECTOS.includes(proyecto)) return;
-
-proyectoActual = proyecto;
-
-PROYECTOS.forEach(p => {
-
-const btn = document.getElementById(`tab-${p}`);
-
-if (btn) {
-
-if (p === proyecto) {
-
-btn.className = "proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 bg-amber-500 text-black border-amber-400 shadow-lg cursor-pointer";
-
-} else {
-
-btn.className = "proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 bg-gray-900 text-gray-400 border-gray-800 hover:text-white cursor-pointer";
-
-}
-
-}
-
-});
-
-const lblProyecto = document.getElementById('label-proyecto-actual');
-
-if (lblProyecto) lblProyecto.innerText = `PROYECTO: ${proyectoActual.replace('_', ' ')}`;
-
-const submodulosDisponibles = MAPA_SUBMODULOS[proyectoActual];
-
-const contenedor = document.getElementById('contenedorSubmodulos');
-
-if (contenedor) {
-
-contenedor.innerHTML = '';
-
-submodulosDisponibles.forEach(subKey => {
-
-const conf = CONFIG_SUBMODULOS[subKey];
-
-const btn = document.createElement('button');
-
-btn.type = 'button';
-
-btn.id = `sub-${subKey}`;
-
-btn.onclick = () => cambiarSubmodulo(subKey);
-
-btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border border-transparent cursor-pointer whitespace-nowrap submodulo-btn-inactivo";
-
-btn.innerHTML = `<i data-lucide="${conf.icono}" class="w-4 h-4"></i><span>${conf.label}</span>`;
-
-contenedor.appendChild(btn);
-
-});
-
-}
-
-cambiarSubmodulo(submodulosDisponibles[0]);
-
+    if (!PROYECTOS.includes(proyecto)) return;
+    proyectoActual = proyecto;
+    PROYECTOS.forEach(p => {
+        const btn = document.getElementById(`tab-${p}`);
+        if (btn) {
+            btn.className = p === proyecto
+                ? "proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 bg-amber-500 text-black border-amber-400 shadow-lg cursor-pointer"
+                : "proyecto-tab px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 bg-gray-900 text-gray-400 border-gray-800 hover:text-white cursor-pointer";
+        }
+    });
+    const lblProyecto = document.getElementById('label-proyecto-actual');
+    if (lblProyecto) lblProyecto.innerText = `PROYECTO: ${proyectoActual.replace('_', ' ')}`;
+    const submodulosDisponibles = MAPA_SUBMODULOS[proyectoActual];
+    const contenedor = document.getElementById('contenedorSubmodulos');
+    if (contenedor) {
+        contenedor.innerHTML = '';
+        submodulosDisponibles.forEach(subKey => {
+            const conf = CONFIG_SUBMODULOS[subKey];
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = `sub-${subKey}`;
+            btn.onclick = () => cambiarSubmodulo(subKey);
+            btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border border-transparent cursor-pointer whitespace-nowrap submodulo-btn-inactivo";
+            btn.innerHTML = `<i data-lucide="${conf.icono}" class="w-4 h-4"></i><span>${conf.label}</span>`;
+            contenedor.appendChild(btn);
+        });
+    }
+    cambiarSubmodulo(submodulosDisponibles[0]);
 }
 
 function cambiarSubmodulo(submodulo) {
-
-const submodulosValidos = MAPA_SUBMODULOS[proyectoActual];
-
-if (!submodulosValidos.includes(submodulo)) return;
-
-submoduloActual = submodulo;
-
-submodulosValidos.forEach(s => {
-
-const btn = document.getElementById(`sub-${s}`);
-
-if (btn) {
-
-if (s === submodulo) {
-
-btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border cursor-pointer whitespace-nowrap submodulo-btn-activo";
-
-} else {
-
-btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border cursor-pointer whitespace-nowrap submodulo-btn-inactivo";
-
-}
-
-}
-
-});
-
-const lblSub = document.getElementById('label-submodulo-actual');
-
-const lblMetric = document.getElementById('label-metric-modulo');
-
-if (lblSub) lblSub.innerText = submoduloActual === 'MENU' ? 'EXPLOSIVOS' : submoduloActual;
-
-if (lblMetric) lblMetric.innerText = `En ${submoduloActual === 'MENU' ? 'EXPLOSIVOS' : submoduloActual}`;
-
-limpiarFormulario();
-
-actualizarInterfaz();
-
+    const submodulosValidos = MAPA_SUBMODULOS[proyectoActual];
+    if (!submodulosValidos.includes(submodulo)) return;
+    submoduloActual = submodulo;
+    submodulosValidos.forEach(s => {
+        const btn = document.getElementById(`sub-${s}`);
+        if (btn) {
+            btn.className = s === submodulo
+                ? "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border cursor-pointer whitespace-nowrap submodulo-btn-activo"
+                : "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 border cursor-pointer whitespace-nowrap submodulo-btn-inactivo";
+        }
+    });
+    const lblSub = document.getElementById('label-submodulo-actual');
+    const lblMetric = document.getElementById('label-metric-modulo');
+    if (lblSub) lblSub.innerText = submoduloActual === 'MENU' ? 'EXPLOSIVOS' : submoduloActual;
+    if (lblMetric) lblMetric.innerText = `En ${submoduloActual === 'MENU' ? 'EXPLOSIVOS' : submoduloActual}`;
+    limpiarFormulario();
+    actualizarInterfaz();
 }
 
 function cambiarModoVista(modo) {
-
-modoVista = modo;
-
-const btnConsolidado = document.getElementById('btn-vista-consolidado');
-
-const btnKardex = document.getElementById('btn-vista-kardex');
-
-const btnStockMinimo = document.getElementById('btn-vista-stock-minimo');
-
-const divConsolidado = document.getElementById('vista-consolidado');
-
-const divKardex = document.getElementById('vista-kardex');
-
-const estiloInactivo = "px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer text-gray-400 hover:text-white bg-transparent";
-
-const estiloActivo = "px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer bg-amber-500 text-black shadow-lg";
-
-if (btnConsolidado) btnConsolidado.className = estiloInactivo;
-
-if (btnKardex) btnKardex.className = estiloInactivo;
-
-if (btnStockMinimo) btnStockMinimo.className = estiloInactivo;
-
-if (modo === 'consolidado') {
-
-if (btnConsolidado) btnConsolidado.className = estiloActivo;
-
-if (divConsolidado) divConsolidado.classList.remove('hidden');
-
-if (divKardex) divKardex.classList.add('hidden');
-
-} else if (modo === 'kardex') {
-
-if (btnKardex) btnKardex.className = estiloActivo;
-
-if (divConsolidado) divConsolidado.classList.remove('hidden');
-
-if (divKardex) divKardex.classList.remove('hidden');
-
-} else if (modo === 'stock_minimo') {
-
-if (btnStockMinimo) btnStockMinimo.className = estiloActivo;
-
-if (divConsolidado) divConsolidado.classList.remove('hidden');
-
-if (divKardex) divKardex.classList.add('hidden');
-
-}
-
-actualizarInterfaz();
-
+    modoVista = modo;
+    const btnConsolidado = document.getElementById('btn-vista-consolidado');
+    const btnKardex = document.getElementById('btn-vista-kardex');
+    const btnStockMinimo = document.getElementById('btn-vista-stock-minimo');
+    const divConsolidado = document.getElementById('vista-consolidado');
+    const divKardex = document.getElementById('vista-kardex');
+    const estiloInactivo = "px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer text-gray-400 hover:text-white bg-transparent";
+    const estiloActivo = "px-3.5 py-1.5 rounded-md text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer bg-amber-500 text-black shadow-lg";
+    btnConsolidado.className = estiloInactivo; btnKardex.className = estiloInactivo; btnStockMinimo.className = estiloInactivo;
+    if (modo === 'consolidado') { btnConsolidado.className = estiloActivo; divConsolidado.classList.remove('hidden'); divKardex.classList.add('hidden'); }
+    else if (modo === 'kardex') { btnKardex.className = estiloActivo; divConsolidado.classList.remove('hidden'); divKardex.classList.remove('hidden'); }
+    else if (modo === 'stock_minimo') { btnStockMinimo.className = estiloActivo; divConsolidado.classList.remove('hidden'); divKardex.classList.add('hidden'); }
+    actualizarInterfaz();
 }
 
 function actualizarInterfaz() {
-
-recalcularConsolidadoDesdeKardex();
-
-renderizarTablas();
-
-actualizarMetricas();
-
-actualizarContadorLimpieza();
-
-if (typeof lucide !== 'undefined') lucide.createIcons();
-
+    recalcularConsolidadoDesdeKardex();
+    renderizarTablas();
+    actualizarMetricas();
+    actualizarContadorLimpieza();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function renderizarTablas() {
+    const subData = baseDatos[proyectoActual][submoduloActual];
+    const tbodyConsolidado = document.getElementById('tbody-consolidado');
+    const tbodyKardex = document.getElementById('tbody-kardex');
+    if (!subData) return;
 
-const subData = baseDatos[proyectoActual][submoduloActual];
+    const filtroM = document.getElementById('filtroMes').value;
+    const filtroA = document.getElementById('filtroAnio').value;
+    const filtroTexto = document.getElementById('inputBuscador').value.toLowerCase().trim();
 
-const tbodyConsolidado = document.getElementById('tbody-consolidado');
+    let facturasFiltradas = subData.facturas.filter(f => {
+        let coincideStockMin = (modoVista !== 'stock_minimo' || f.stock <= 5);
+        let coincideTexto = !filtroTexto ||
+            (f.nombre && f.nombre.toLowerCase().includes(filtroTexto)) ||
+            (f.codigo && f.codigo.toLowerCase().includes(filtroTexto)) ||
+            (f.observacion && f.observacion.toLowerCase().includes(filtroTexto)) ||
+            (f.centroCosto && f.centroCosto.toLowerCase().includes(filtroTexto));
+        return coincideStockMin && coincideTexto;
+    });
 
-const tbodyKardex = document.getElementById('tbody-kardex');
+    tbodyConsolidado.innerHTML = '';
+    if (facturasFiltradas.length === 0) {
+        tbodyConsolidado.innerHTML = `<tr><td colspan="11" class="py-8 text-center text-gray-500 italic">No hay registros consolidados para el filtro seleccionado.</td></tr>`;
+    } else {
+        facturasFiltradas.forEach(f => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-900/60 transition";
+            const precioBadge = f.precioUnitario > 0
+                ? `<span class="font-mono text-amber-300 font-semibold">${formatearSoles(f.precioUnitario)}</span>`
+                : `<span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 rounded text-[11px] font-bold">Pendiente</span>`;
+            const accionesHtml = esAdmin ? `
+                <button onclick="editarRegistroKardex(${f.id})" title="Editar" class="text-amber-400 hover:text-amber-300 p-1 mr-1 cursor-pointer"><i data-lucide="edit-3" class="w-4 h-4 inline"></i></button>
+                <button onclick="actualizarPrecioProducto('${f.codigo}', ${f.precioUnitario})" title="Precio" class="text-emerald-400 hover:text-emerald-300 p-1 mr-1 cursor-pointer"><i data-lucide="dollar-sign" class="w-4 h-4 inline"></i></button>
+                <button onclick="eliminarCodigoCompleto('${f.codigo}')" title="Eliminar" class="text-rose-400 hover:text-rose-300 p-1 cursor-pointer"><i data-lucide="trash" class="w-4 h-4 inline"></i></button>
+            ` : `<span class="text-gray-500 text-xs">Solo lectura</span>`;
 
-if (!subData) {
+            tr.innerHTML = `
+                <td class="px-3 py-2.5 text-center font-mono text-gray-400">${f.fecha}</td>
+                <td class="px-3 py-2.5 text-center font-semibold text-gray-200">${f.nombre}</td>
+                <td class="px-3 py-2.5 text-center font-mono text-amber-300 font-bold">${f.codigo}</td>
+                <td class="px-3 py-2.5 text-center font-mono text-amber-400">${f.unidadMedida}</td>
+                <td class="px-3 py-2.5 text-center">${precioBadge}</td>
+                <td class="px-3 py-2.5 text-center font-mono text-emerald-400 font-semibold">${formatearCantidadVisual(f.entradas)}</td>
+                <td class="px-3 py-2.5 text-center font-mono text-rose-400 font-semibold">${formatearCantidadVisual(f.salidas)}</td>
+                <td class="px-3 py-2.5 text-center font-mono font-bold ${f.stock <= 5 ? 'text-rose-400 bg-rose-950/30 rounded' : 'text-amber-300'}">${formatearCantidadVisual(f.stock)}</td>
+                <td class="px-3 py-2.5 text-center font-mono text-cyan-300">${f.centroCosto || '-'}</td>
+                <td class="px-3 py-2.5 text-center text-gray-300">${f.observacion || '-'}</td>
+                <td class="px-3 py-2.5 text-center">${accionesHtml}</td>
+            `;
+            tbodyConsolidado.appendChild(tr);
+        });
+    }
 
-if (tbodyConsolidado) tbodyConsolidado.innerHTML = '';
+    let kardexFiltrado = subData.kardex.filter(k => {
+        let coincideMes = (filtroM === 'TODOS' || String(k.mes) === filtroM);
+        let coincideAnio = (filtroA === 'TODOS' || String(k.anio) === filtroA);
+        let coincideTexto = !filtroTexto ||
+            (k.nombre && k.nombre.toLowerCase().includes(filtroTexto)) ||
+            (k.codigo && k.codigo.toLowerCase().includes(filtroTexto)) ||
+            (k.observacion && k.observacion.toLowerCase().includes(filtroTexto)) ||
+            (k.centroCosto && k.centroCosto.toLowerCase().includes(filtroTexto));
+        return coincideMes && coincideAnio && coincideTexto;
+    }).sort((a, b) => obtenerTimestampDesdeFechaStr(b.fecha) - obtenerTimestampDesdeFechaStr(a.fecha));
 
-if (tbodyKardex) tbodyKardex.innerHTML = '';
+    tbodyKardex.innerHTML = '';
+    if (kardexFiltrado.length === 0) {
+        tbodyKardex.innerHTML = `<tr><td colspan="11" class="py-8 text-center text-gray-500 italic">No hay registros de Kardex para el filtro seleccionado.</td></tr>`;
+    } else {
+        kardexFiltrado.forEach(k => {
+            const subtotal = redondear2Dec(k.cantidad * (k.precioUnitario || 0));
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-900/60 transition";
+            const pUnitVisual = k.precioUnitario > 0 ? formatearSoles(k.precioUnitario) : '<span class="text-yellow-400 font-bold">Pendiente</span>';
+            const subtotalVisual = k.precioUnitario > 0 ? formatearSoles(subtotal) : '<span class="text-yellow-400 font-bold">S/ 0.00</span>';
+            const accionesKardex = esAdmin ? `
+                <button onclick="editarRegistroKardex(${k.id})" title="Editar" class="text-amber-400 hover:text-amber-300 p-1 mr-1 cursor-pointer"><i data-lucide="edit-3" class="w-4 h-4 inline"></i></button>
+                <button onclick="eliminarRegistroKardex(${k.id})" title="Eliminar" class="text-rose-400 hover:text-rose-300 p-1 cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+            ` : `<span class="text-gray-500 text-xs">-</span>`;
 
-return;
-
+            tr.innerHTML = `
+                <td class="px-3 py-2.5 text-center font-mono text-gray-400">${k.fecha}</td>
+                <td class="px-3 py-2.5 text-center font-semibold text-gray-200">${k.nombre}</td>
+                <td class="px-3 py-2.5 text-center font-mono text-amber-300 font-bold">${k.codigo}</td>
+                <td class="px-3 py-2.5 text-center font-mono text-amber-400">${k.unidadMedida || 'UND'}</td>
+                <td class="px-3 py-2.5 text-center font-semibold ${k.tipo === 'ENTRADA' ? 'text-emerald-400' : 'text-rose-400'}">${k.tipo}</td>
+                <td class="px-3 py-2.5 text-center font-mono font-bold">${formatearCantidadVisual(k.cantidad)}</td>
+                <td class="px-3 py-2.5 text-center font-mono">${pUnitVisual}</td>
+                <td class="px-3 py-2.5 text-center font-mono font-bold text-amber-300">${subtotalVisual}</td>
+                <td class="px-3 py-2.5 text-center font-mono text-cyan-300">${k.centroCosto || '-'}</td>
+                <td class="px-3 py-2.5 text-center text-gray-300">${k.observacion || '-'}</td>
+                <td class="px-3 py-2.5 text-center">${accionesKardex}</td>
+            `;
+            tbodyKardex.appendChild(tr);
+        });
+    }
+    const badge = document.getElementById('badgeStockMinimo');
+    if (badge) badge.innerText = subData.facturas.filter(f => f.stock <= 5).length;
 }
-
-const filtroM = document.getElementById('filtroMes').value;
-
-const filtroA = document.getElementById('filtroAnio').value;
-
-const filtroTexto = document.getElementById('inputBuscador').value.toLowerCase().trim();
-
-// Render Consolidado
-
-let facturasFiltradas = subData.facturas.filter(f => {
-
-let coincideStockMin = (modoVista !== 'stock_minimo' || f.stock <= 5);
-
-let coincideTexto = !filtroTexto ||
-
-(f.nombre && f.nombre.toLowerCase().includes(filtroTexto)) ||
-
-(f.codigo && f.codigo.toLowerCase().includes(filtroTexto)) ||
-
-(f.observacion && f.observacion.toLowerCase().includes(filtroTexto)) ||
-
-(f.centroCosto && f.centroCosto.toLowerCase().includes(filtroTexto));
-
-return coincideStockMin && coincideTexto;
-
-});
-
-if (tbodyConsolidado) {
-
-tbodyConsolidado.innerHTML = '';
-
-if (facturasFiltradas.length === 0) {
-
-tbodyConsolidado.innerHTML = `<tr><td colspan="11" class="py-8 text-center text-gray-500 italic">No hay registros consolidados para el filtro seleccionado.</td></tr>`;
-
-} else {
-
-facturasFiltradas.forEach(f => {
-
-const tr = document.createElement('tr');
-
-tr.className = "hover:bg-gray-900/60 transition";
-
-const precioBadge = f.precioUnitario > 0
-
-? `<span class="font-mono text-amber-300 font-semibold">${formatearSoles(f.precioUnitario)}</span>`
-
-: `<span class="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 rounded text-[11px] font-bold">Pendiente</span>`;
-
-tr.innerHTML = `
-
-<td class="px-3 py-2.5 text-center font-mono text-gray-400">${f.fecha}</td>
-
-<td class="px-3 py-2.5 text-center font-semibold text-gray-200">${f.nombre}</td>
-
-<td class="px-3 py-2.5 text-center font-mono text-amber-300 font-bold">${f.codigo}</td>
-
-<td class="px-3 py-2.5 text-center font-mono text-amber-400">${f.unidadMedida}</td>
-
-<td class="px-3 py-2.5 text-center">${precioBadge}</td>
-
-<td class="px-3 py-2.5 text-center font-mono text-emerald-400 font-semibold">${formatearCantidadVisual(f.entradas)}</td>
-
-<td class="px-3 py-2.5 text-center font-mono text-rose-400 font-semibold">${formatearCantidadVisual(f.salidas)}</td>
-
-<td class="px-3 py-2.5 text-center font-mono font-bold ${f.stock <= 5 ? 'text-rose-400 bg-rose-950/30 rounded' : 'text-amber-300'}">${formatearCantidadVisual(f.stock)}</td>
-
-<td class="px-3 py-2.5 text-center font-mono text-cyan-300">${f.centroCosto || '-'}</td>
-
-<td class="px-3 py-2.5 text-center text-gray-300">${f.observacion || '-'}</td>
-
-<td class="px-3 py-2.5 text-center">
-
-<button onclick="editarRegistroKardex(${f.id})" title="Editar Producto / Movimiento" class="text-amber-400 hover:text-amber-300 p-1 mr-1 cursor-pointer">
-
-<i data-lucide="edit-3" class="w-4 h-4 inline"></i>
-
-</button>
-
-<button onclick="actualizarPrecioProducto('${f.codigo}', ${f.precioUnitario})" title="Asignar / Cambiar Precio" class="text-emerald-400 hover:text-emerald-300 p-1 mr-1 cursor-pointer">
-
-<i data-lucide="dollar-sign" class="w-4 h-4 inline"></i>
-
-</button>
-
-<button onclick="eliminarCodigoCompleto('${f.codigo}')" title="Eliminar Producto Completo" class="text-rose-400 hover:text-rose-300 p-1 cursor-pointer">
-
-<i data-lucide="trash" class="w-4 h-4 inline"></i>
-
-</button>
-
-</td>
-
-`;
-
-tbodyConsolidado.appendChild(tr);
-
-});
-
-}
-
-}
-
-// Render Kardex (Ordenado cronológicamente de más reciente a más antiguo)
-
-let kardexFiltrado = subData.kardex.filter(k => {
-
-let coincideMes = (filtroM === 'TODOS' || String(k.mes) === filtroM);
-
-let coincideAnio = (filtroA === 'TODOS' || String(k.anio) === filtroA);
-
-let coincideTexto = !filtroTexto ||
-
-(k.nombre && k.nombre.toLowerCase().includes(filtroTexto)) ||
-
-(k.codigo && k.codigo.toLowerCase().includes(filtroTexto)) ||
-
-(k.observacion && k.observacion.toLowerCase().includes(filtroTexto)) ||
-
-(k.centroCosto && k.centroCosto.toLowerCase().includes(filtroTexto));
-
-return coincideMes && coincideAnio && coincideTexto;
-
-}).sort((a, b) => obtenerTimestampDesdeFechaStr(b.fecha) - obtenerTimestampDesdeFechaStr(a.fecha));
-
-if (tbodyKardex) {
-
-tbodyKardex.innerHTML = '';
-
-if (kardexFiltrado.length === 0) {
-
-tbodyKardex.innerHTML = `<tr><td colspan="11" class="py-8 text-center text-gray-500 italic">No hay registros de Kardex para el filtro seleccionado.</td></tr>`;
-
-} else {
-
-kardexFiltrado.forEach(k => {
-
-const subtotal = redondear2Dec(k.cantidad * (k.precioUnitario || 0));
-
-const tr = document.createElement('tr');
-
-tr.className = "hover:bg-gray-900/60 transition";
-
-const pUnitVisual = k.precioUnitario > 0 ? formatearSoles(k.precioUnitario) : '<span class="text-yellow-400 font-bold">Pendiente</span>';
-
-const subtotalVisual = k.precioUnitario > 0 ? formatearSoles(subtotal) : '<span class="text-yellow-400 font-bold">S/ 0.00</span>';
-
-tr.innerHTML = `
-
-<td class="px-3 py-2.5 text-center font-mono text-gray-400">${k.fecha}</td>
-
-<td class="px-3 py-2.5 text-center font-semibold text-gray-200">${k.nombre}</td>
-
-<td class="px-3 py-2.5 text-center font-mono text-amber-300 font-bold">${k.codigo}</td>
-
-<td class="px-3 py-2.5 text-center font-mono text-amber-400">${k.unidadMedida || 'UND'}</td>
-
-<td class="px-3 py-2.5 text-center font-semibold ${k.tipo === 'ENTRADA' ? 'text-emerald-400' : 'text-rose-400'}">${k.tipo}</td>
-
-<td class="px-3 py-2.5 text-center font-mono font-bold">${formatearCantidadVisual(k.cantidad)}</td>
-
-<td class="px-3 py-2.5 text-center font-mono">${pUnitVisual}</td>
-
-<td class="px-3 py-2.5 text-center font-mono font-bold text-amber-300">${subtotalVisual}</td>
-
-<td class="px-3 py-2.5 text-center font-mono text-cyan-300">${k.centroCosto || '-'}</td>
-
-<td class="px-3 py-2.5 text-center text-gray-300">${k.observacion || '-'}</td>
-
-<td class="px-3 py-2.5 text-center">
-
-<button onclick="editarRegistroKardex(${k.id})" title="Editar Movimiento" class="text-amber-400 hover:text-amber-300 p-1 mr-1 cursor-pointer">
-
-<i data-lucide="edit-3" class="w-4 h-4 inline"></i>
-
-</button>
-
-<button onclick="eliminarRegistroKardex(${k.id})" title="Eliminar Movimiento" class="text-rose-400 hover:text-rose-300 p-1 cursor-pointer">
-
-<i data-lucide="trash-2" class="w-4 h-4 inline"></i>
-
-</button>
-
-</td>
-
-`;
-
-tbodyKardex.appendChild(tr);
-
-});
-
-}
-
-}
-
-const numStockMin = subData.facturas.filter(f => f.stock <= 5).length;
-
-const badge = document.getElementById('badgeStockMinimo');
-
-if (badge) badge.innerText = numStockMin;
-
-}
-
-/* FÓRMULA MATEMÁTICA CORREGIDA */
 
 function actualizarMetricas() {
-
-const subData = baseDatos[proyectoActual][submoduloActual];
-
-if (!subData) return;
-
-const filtroM = document.getElementById('filtroMes').value;
-
-const filtroA = document.getElementById('filtroAnio').value;
-
-let entradasSoles = 0, entradasCant = 0;
-
-let salidasSoles = 0, salidasCant = 0;
-
-subData.kardex.forEach(k => {
-
-let coincideMes = (filtroM === 'TODOS' || String(k.mes) === filtroM);
-
-let coincideAnio = (filtroA === 'TODOS' || String(k.anio) === filtroA);
-
-if (coincideMes && coincideAnio) {
-
-let pUnit = k.precioUnitario || 0;
-
-let sub = k.cantidad * pUnit;
-
-if (k.tipo === 'ENTRADA') {
-
-entradasSoles += sub;
-
-entradasCant += k.cantidad;
-
-} else if (k.tipo === 'SALIDA') {
-
-salidasSoles += sub;
-
-salidasCant += k.cantidad;
-
-}
-
-}
-
-});
-
-// SALDO STOCK = ENTRADAS DEL MES - SALIDAS DEL MES
-
-let saldoSoles = entradasSoles - salidasSoles;
-
-let saldoCant = entradasCant - salidasCant;
-
-document.getElementById('metric-entradas-soles').innerText = formatearSoles(entradasSoles);
-
-document.getElementById('metric-entradas-unidades').innerText = `${formatearCantidadVisual(entradasCant)} Cant.`;
-
-document.getElementById('metric-salidas-soles').innerText = formatearSoles(salidasSoles);
-
-document.getElementById('metric-salidas-unidades').innerText = `${formatearCantidadVisual(salidasCant)} Cant.`;
-
-document.getElementById('metric-saldo-soles').innerText = formatearSoles(saldoSoles);
-
-document.getElementById('metric-saldo-unidades').innerText = `${formatearCantidadVisual(Math.max(0, saldoCant))} Cant.`;
-
-document.getElementById('metric-total-codigos').innerText = subData.facturas.length;
-
+    const subData = baseDatos[proyectoActual][submoduloActual];
+    if (!subData) return;
+    const filtroM = document.getElementById('filtroMes').value;
+    const filtroA = document.getElementById('filtroAnio').value;
+    let entradasSoles = 0, entradasCant = 0, salidasSoles = 0, salidasCant = 0;
+    subData.kardex.forEach(k => {
+        if ((filtroM === 'TODOS' || String(k.mes) === filtroM) && (filtroA === 'TODOS' || String(k.anio) === filtroA)) {
+            let sub = k.cantidad * (k.precioUnitario || 0);
+            if (k.tipo === 'ENTRADA') { entradasSoles += sub; entradasCant += k.cantidad; }
+            else if (k.tipo === 'SALIDA') { salidasSoles += sub; salidasCant += k.cantidad; }
+        }
+    });
+    document.getElementById('metric-entradas-soles').innerText = formatearSoles(entradasSoles);
+    document.getElementById('metric-entradas-unidades').innerText = `${formatearCantidadVisual(entradasCant)} Cant.`;
+    document.getElementById('metric-salidas-soles').innerText = formatearSoles(salidasSoles);
+    document.getElementById('metric-salidas-unidades').innerText = `${formatearCantidadVisual(salidasCant)} Cant.`;
+    document.getElementById('metric-saldo-soles').innerText = formatearSoles(entradasSoles - salidasSoles);
+    document.getElementById('metric-saldo-unidades').innerText = `${formatearCantidadVisual(Math.max(0, entradasCant - salidasCant))} Cant.`;
+    document.getElementById('metric-total-codigos').innerText = subData.facturas.length;
 }
 
 function actualizarContadorLimpieza() {
-
-const subData = baseDatos[proyectoActual][submoduloActual];
-
-const count = subData ? subData.kardex.length : 0;
-
-const el = document.getElementById('txtContadorLimpieza');
-
-if (el) el.innerText = `Limpiar Datos (${count})`;
-
+    const subData = baseDatos[proyectoActual][submoduloActual];
+    const el = document.getElementById('txtContadorLimpieza');
+    if (el) el.innerText = `Limpiar Datos (${subData ? subData.kardex.length : 0})`;
 }
 
-function ejecutarRegistroFactura() {
+async function ejecutarRegistroFactura() {
+    const fechaIso = document.getElementById('fechaOperacion').value;
+    const nombre = document.getElementById('nombreProducto').value.trim();
+    const codigo = document.getElementById('codigoProd').value.trim().toUpperCase();
+    const unidadMedida = document.getElementById('unidadMedida').value.trim().toUpperCase() || 'UND';
+    const tipo = document.getElementById('tipoMovimiento').value;
+    const cantidad = parsearCantidadDecimal(document.getElementById('cantidad').value);
+    const precioValRaw = document.getElementById('precioUnitario').value;
+    const precioUnitario = precioValRaw !== "" ? parsearCantidadDecimal(precioValRaw) : 0;
+    const centroCosto = document.getElementById('centroCosto').value.trim().toUpperCase();
+    const observacion = document.getElementById('observacion').value.trim();
+    const editId = parseInt(document.getElementById('editId').value, 10);
 
-const fechaIso = document.getElementById('fechaOperacion').value;
+    if (!fechaIso || !nombre || !codigo || cantidad <= 0) {
+        mostrarNotificacion('Campos Incompletos', 'Completa los campos requeridos.', 'warning');
+        return;
+    }
+    const partesFecha = fechaIso.split('-');
+    const anio = parseInt(partesFecha[0], 10), mes = parseInt(partesFecha[1], 10), dia = parseInt(partesFecha[2], 10);
+    const fechaStr = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${anio}`;
+    let subData = baseDatos[proyectoActual][submoduloActual];
 
-const nombre = document.getElementById('nombreProducto').value.trim();
-
-const codigo = document.getElementById('codigoProd').value.trim().toUpperCase();
-
-const unidadMedida = document.getElementById('unidadMedida').value.trim().toUpperCase() || 'UND';
-
-const tipo = document.getElementById('tipoMovimiento').value;
-
-const cantidad = parsearCantidadDecimal(document.getElementById('cantidad').value);
-
-const precioValRaw = document.getElementById('precioUnitario').value;
-
-const precioUnitario = precioValRaw !== "" ? parsearCantidadDecimal(precioValRaw) : 0;
-
-const centroCosto = document.getElementById('centroCosto').value.trim().toUpperCase();
-
-const observacion = document.getElementById('observacion').value.trim();
-
-const editId = parseInt(document.getElementById('editId').value, 10);
-
-if (!fechaIso || !nombre || !codigo || cantidad <= 0) {
-
-mostrarNotificacion('Campos Incompletos', 'Completa los campos requeridos y asegúrate de ingresar una cantidad válida.', 'warning');
-
-return;
-
-}
-
-const partesFecha = fechaIso.split('-');
-
-const anio = parseInt(partesFecha[0], 10);
-
-const mes = parseInt(partesFecha[1], 10);
-
-const dia = parseInt(partesFecha[2], 10);
-
-const fechaStr = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${anio}`;
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-if (editId !== -1) {
-
-let idx = subData.kardex.findIndex(k => k.id === editId);
-
-if (idx !== -1) {
-
-subData.kardex[idx] = {
-
-id: editId, fecha: fechaStr, fechaIso, mes, anio,
-
-nombre, codigo, unidadMedida, tipo, cantidad, precioUnitario,
-
-centroCosto, observacion
-
-};
-
-mostrarNotificacion('Registro Actualizado', 'El movimiento ha sido editado correctamente.', 'success');
-
-}
-
-} else {
-
-let nuevoMov = {
-
-id: Date.now() + Math.floor(Math.random() * 1000),
-
-fecha: fechaStr, fechaIso, mes, anio,
-
-nombre, codigo, unidadMedida, tipo, cantidad, precioUnitario,
-
-centroCosto, observacion
-
-};
-
-subData.kardex.push(nuevoMov);
-
-mostrarNotificacion('Registro Exitoso', 'El movimiento se registró en el Kardex.', 'success');
-
-}
-
-guardarDatosEnStorage();
-
-limpiarFormulario();
-
-actualizarInterfaz();
-
+    if (editId !== -1) {
+        let idx = subData.kardex.findIndex(k => k.id === editId);
+        if (idx !== -1) subData.kardex[idx] = { id: editId, fecha: fechaStr, fechaIso, mes, anio, nombre, codigo, unidadMedida, tipo, cantidad, precioUnitario, centroCosto, observacion };
+    } else {
+        subData.kardex.push({ id: Date.now() + Math.floor(Math.random() * 1000), fecha: fechaStr, fechaIso, mes, anio, nombre, codigo, unidadMedida, tipo, cantidad, precioUnitario, centroCosto, observacion });
+    }
+    limpiarFormulario();
+    actualizarInterfaz();
+    await guardarDatosEnStorage();
+    mostrarNotificacion('Guardado en Vivo', 'El registro se publicó y ya es visible para todos.', 'success');
 }
 
 function actualizarPrecioProducto(codigo, precioActual) {
-
-if (typeof Swal !== 'undefined') {
-
-Swal.fire({
-
-title: `Actualizar Precio de ${codigo}`,
-
-text: 'Ingresa el precio unitario en Soles (S/.) para aplicar a todos los registros de este producto:',
-
-input: 'number',
-
-inputAttributes: {
-
-min: '0',
-
-step: '0.01',
-
-placeholder: '0.00'
-
-},
-
-inputValue: precioActual > 0 ? precioActual : '',
-
-showCancelButton: true,
-
-confirmButtonColor: '#f59e0b',
-
-cancelButtonColor: '#374151',
-
-confirmButtonText: 'Guardar Precio',
-
-cancelButtonText: 'Cancelar',
-
-background: '#111827',
-
-color: '#f3f4f6',
-
-inputValidator: (value) => {
-
-if (!value || isNaN(value) || parseFloat(value) < 0) {
-
-return 'Por favor ingresa un precio válido mayor o igual a 0';
-
-}
-
-}
-
-}).then((result) => {
-
-if (result.isConfirmed) {
-
-const nuevoPrecio = parsearCantidadDecimal(result.value);
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-subData.kardex.forEach(k => {
-
-if (k.codigo === codigo) {
-
-k.precioUnitario = nuevoPrecio;
-
-}
-
-});
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Precio Actualizado', `Se asignó el precio de S/ ${nuevoPrecio.toFixed(2)} al producto ${codigo}.`, 'success');
-
-}
-
-});
-
-} else {
-
-const val = prompt(`Ingresa el nuevo precio para ${codigo}:`, precioActual > 0 ? precioActual : '0');
-
-if (val !== null && !isNaN(val) && parseFloat(val) >= 0) {
-
-const nuevoPrecio = parsearCantidadDecimal(val);
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-subData.kardex.forEach(k => {
-
-if (k.codigo === codigo) {
-
-k.precioUnitario = nuevoPrecio;
-
-}
-
-});
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Precio Actualizado', `Se asignó el precio de S/ ${nuevoPrecio.toFixed(2)} al producto ${codigo}.`, 'success');
-
-}
-
-}
-
+    const val = prompt(`Ingresa el nuevo precio en Soles (S/.) para ${codigo}:`, precioActual > 0 ? precioActual : '0');
+    if (val !== null && !isNaN(val) && parseFloat(val) >= 0) {
+        const nuevoPrecio = parsearCantidadDecimal(val);
+        baseDatos[proyectoActual][submoduloActual].kardex.forEach(k => { if (k.codigo === codigo) k.precioUnitario = nuevoPrecio; });
+        guardarDatosEnStorage();
+        actualizarInterfaz();
+    }
 }
 
 function editarRegistroKardex(id) {
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-let item = subData.kardex.find(k => k.id === id);
-
-if (!item) return;
-
-document.getElementById('editId').value = item.id;
-
-document.getElementById('fechaOperacion').value = item.fechaIso || new Date().toISOString().split('T')[0];
-
-document.getElementById('nombreProducto').value = item.nombre;
-
-document.getElementById('codigoProd').value = item.codigo;
-
-document.getElementById('unidadMedida').value = item.unidadMedida || 'UND';
-
-document.getElementById('tipoMovimiento').value = item.tipo;
-
-document.getElementById('cantidad').value = item.cantidad;
-
-document.getElementById('precioUnitario').value = item.precioUnitario > 0 ? item.precioUnitario : '';
-
-document.getElementById('centroCosto').value = item.centroCosto || '';
-
-document.getElementById('observacion').value = item.observacion || '';
-
-document.getElementById('form-titulo').innerText = 'EDITAR PRODUCTO / MOVIMIENTO';
-
-document.getElementById('btn-submit-text').innerText = 'Actualizar Registro';
-
-window.scrollTo({ top: 200, behavior: 'smooth' });
-
+    let item = baseDatos[proyectoActual][submoduloActual].kardex.find(k => k.id === id);
+    if (!item) return;
+    document.getElementById('editId').value = item.id;
+    document.getElementById('fechaOperacion').value = item.fechaIso || new Date().toISOString().split('T')[0];
+    document.getElementById('nombreProducto').value = item.nombre;
+    document.getElementById('codigoProd').value = item.codigo;
+    document.getElementById('unidadMedida').value = item.unidadMedida || 'UND';
+    document.getElementById('tipoMovimiento').value = item.tipo;
+    document.getElementById('cantidad').value = item.cantidad;
+    document.getElementById('precioUnitario').value = item.precioUnitario > 0 ? item.precioUnitario : '';
+    document.getElementById('centroCosto').value = item.centroCosto || '';
+    document.getElementById('observacion').value = item.observacion || '';
+    document.getElementById('form-titulo').innerText = 'EDITAR PRODUCTO / MOVIMIENTO';
+    document.getElementById('btn-submit-text').innerText = 'Actualizar Registro';
+    window.scrollTo({ top: 200, behavior: 'smooth' });
 }
 
 function eliminarRegistroKardex(id) {
-
-if (typeof Swal !== 'undefined') {
-
-Swal.fire({
-
-title: '¿Eliminar movimiento?',
-
-text: "Esta acción no se puede deshacer.",
-
-icon: 'warning',
-
-showCancelButton: true,
-
-confirmButtonColor: '#ef4444',
-
-cancelButtonColor: '#374151',
-
-confirmButtonText: 'Sí, eliminar',
-
-cancelButtonText: 'Cancelar',
-
-background: '#111827',
-
-color: '#f3f4f6'
-
-}).then((result) => {
-
-if (result.isConfirmed) {
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-subData.kardex = subData.kardex.filter(k => k.id !== id);
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Eliminado', 'El movimiento fue retirado.', 'success');
-
-}
-
-});
-
-} else {
-
-if (confirm("¿Eliminar movimiento? Esta acción no se puede deshacer.")) {
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-subData.kardex = subData.kardex.filter(k => k.id !== id);
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Eliminado', 'El movimiento fue retirado.', 'success');
-
-}
-
-}
-
+    if (confirm("¿Eliminar este movimiento?")) {
+        let subData = baseDatos[proyectoActual][submoduloActual];
+        subData.kardex = subData.kardex.filter(k => k.id !== id);
+        guardarDatosEnStorage();
+        actualizarInterfaz();
+    }
 }
 
 function eliminarCodigoCompleto(codigo) {
-
-if (typeof Swal !== 'undefined') {
-
-Swal.fire({
-
-title: `¿Eliminar todo el producto (${codigo})?`,
-
-text: "Se eliminarán TODOS los registros del Kardex asociados a este código en el submódulo actual.",
-
-icon: 'warning',
-
-showCancelButton: true,
-
-confirmButtonColor: '#ef4444',
-
-cancelButtonColor: '#374151',
-
-confirmButtonText: 'Sí, borrar producto',
-
-cancelButtonText: 'Cancelar',
-
-background: '#111827',
-
-color: '#f3f4f6'
-
-}).then((result) => {
-
-if (result.isConfirmed) {
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-subData.kardex = subData.kardex.filter(k => k.codigo !== codigo);
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Producto Borrado', `Se eliminaron los registros de ${codigo}.`, 'success');
-
-}
-
-});
-
-} else {
-
-if (confirm(`¿Eliminar todo el producto (${codigo})? Se borrarán todos los registros asociados.`)) {
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-subData.kardex = subData.kardex.filter(k => k.codigo !== codigo);
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Producto Borrado', `Se eliminaron los registros de ${codigo}.`, 'success');
-
-}
-
-}
-
+    if (confirm(`¿Eliminar todo el producto (${codigo})?`)) {
+        let subData = baseDatos[proyectoActual][submoduloActual];
+        subData.kardex = subData.kardex.filter(k => k.codigo !== codigo);
+        guardarDatosEnStorage();
+        actualizarInterfaz();
+    }
 }
 
 function limpiarFormulario() {
-
-document.getElementById('editId').value = '-1';
-
-document.getElementById('formularioProducto').reset();
-
-document.getElementById('form-titulo').innerText = 'REGISTRAR PRODUCTO EN INVENTARIO';
-
-document.getElementById('btn-submit-text').innerText = 'Registrar Registro';
-
-establecerFechaHoy();
-
+    document.getElementById('editId').value = '-1';
+    document.getElementById('formularioProducto').reset();
+    document.getElementById('form-titulo').innerText = 'REGISTRAR PRODUCTO EN INVENTARIO';
+    document.getElementById('btn-submit-text').innerText = 'Registrar Registro';
+    establecerFechaHoy();
 }
 
-function limpiarFormularioConNotificacion() {
-
-limpiarFormulario();
-
-mostrarNotificacion('Limpieza', 'Formulario reiniciado.', 'info');
-
-}
-
-function filtrarTabla() {
-
-renderizarTablas();
-
-}
-
-function ejecutarFiltroMes() {
-
-actualizarInterfaz();
-
-}
-
-/* OPCIÓN DE LIMPIEZA DE DATA POR SUBMÓDULO/MENÚ Y PROYECTO COMPLETO */
+function filtrarTabla() { renderizarTablas(); }
+function ejecutarFiltroMes() { actualizarInterfaz(); }
 
 function abrirOpcionesLimpieza() {
-
-const subLabel = submoduloActual === 'MENU' ? 'EXPLOSIVOS' : submoduloActual;
-
-const projLabel = proyectoActual.replace('_', ' ');
-
-if (typeof Swal !== 'undefined') {
-
-Swal.fire({
-
-title: 'Opciones de Limpieza',
-
-text: `¿Qué deseas vaciar en PROYECTO ${projLabel}?`,
-
-icon: 'warning',
-
-showCancelButton: true,
-
-showDenyButton: true,
-
-confirmButtonColor: '#ef4444',
-
-denyButtonColor: '#b91c1c',
-
-cancelButtonColor: '#374151',
-
-confirmButtonText: `Vaciar solo ${subLabel}`,
-
-denyButtonText: `Vaciar TODO ${projLabel}`,
-
-cancelButtonText: 'Cancelar',
-
-background: '#111827',
-
-color: '#f3f4f6'
-
-}).then((result) => {
-
-if (result.isConfirmed) {
-
-baseDatos[proyectoActual][submoduloActual] = { facturas: [], kardex: [] };
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Limpiado', `Se vació correctamente la data de ${subLabel}.`, 'success');
-
-} else if (result.isDenied) {
-
-MAPA_SUBMODULOS[proyectoActual].forEach(s => {
-
-baseDatos[proyectoActual][s] = { facturas: [], kardex: [] };
-
-});
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Limpiado', `Se vació todo el proyecto ${projLabel}.`, 'success');
-
+    const subLabel = submoduloActual === 'MENU' ? 'EXPLOSIVOS' : submoduloActual;
+    if (confirm(`¿Vaciar toda la data del menú ${subLabel}?`)) {
+        baseDatos[proyectoActual][submoduloActual] = { facturas: [], kardex: [] };
+        guardarDatosEnStorage();
+        actualizarInterfaz();
+    }
 }
 
-});
-
-} else {
-
-if (confirm(`¿Vaciar solo la data del menú ${subLabel}?`)) {
-
-baseDatos[proyectoActual][submoduloActual] = { facturas: [], kardex: [] };
-
-guardarDatosEnStorage();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Limpiado', `Se vació correctamente la data de ${subLabel}.`, 'success');
-
+async function guardarCambiosManuales() {
+    await guardarDatosEnStorage();
+    mostrarNotificacion('Sincronizado', 'Todos los datos se subieron a la nube.', 'success');
 }
 
+async function guardarDatosEnStorage() {
+    const jsonStr = JSON.stringify(baseDatos);
+    localStorage.setItem('MINERAL_PERU_BD', jsonStr);
+    const badgeNube = document.getElementById('estadoNube');
+    if (badgeNube) badgeNube.innerHTML = '<span>⏳ Publicando...</span>';
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: jsonStr
+        });
+        if (badgeNube) badgeNube.innerHTML = '<span>☁️ En Vivo</span>';
+    } catch (e) {
+        if (badgeNube) badgeNube.innerHTML = '<span>⚠️ Error Red</span>';
+    }
 }
 
-}
-
-function guardarCambiosManuales() {
-
-guardarDatosEnStorage();
-
-mostrarNotificacion('Guardado', 'Todos los datos se guardaron en LocalStorage.', 'success');
-
-}
-
-function guardarDatosEnStorage() {
-
-localStorage.setItem('MINERAL_PERU_BD', JSON.stringify(baseDatos));
-
-}
-
-function cargarDatosGuardados() {
-
-const raw = localStorage.getItem('MINERAL_PERU_BD');
-
-if (raw) {
-
-try {
-
-const parsed = JSON.parse(raw);
-
-PROYECTOS.forEach(p => {
-
-if (parsed[p]) {
-
-MAPA_SUBMODULOS[p].forEach(s => {
-
-if (parsed[p][s]) {
-
-baseDatos[p][s] = parsed[p][s];
-
-}
-
-});
-
-}
-
-});
-
-} catch (e) {
-
-console.error("Error al cargar datos guardados", e);
-
-}
-
-}
-
+async function cargarDatosGuardados(notificar) {
+    const badgeNube = document.getElementById('estadoNube');
+    try {
+        const resp = await fetch(GOOGLE_SCRIPT_URL + "?t=" + Date.now());
+        if (resp.ok) {
+            const parsed = await resp.json();
+            if (parsed && Object.keys(parsed).length > 0) {
+                PROYECTOS.forEach(p => {
+                    if (parsed[p]) {
+                        MAPA_SUBMODULOS[p].forEach(s => {
+                            if (parsed[p][s]) baseDatos[p][s] = parsed[p][s];
+                        });
+                    }
+                });
+                localStorage.setItem('MINERAL_PERU_BD', JSON.stringify(baseDatos));
+                actualizarInterfaz();
+                if (badgeNube) badgeNube.innerHTML = '<span>☁️ En Vivo</span>';
+                if (notificar) mostrarNotificacion('Actualizado', 'Datos sincronizados en tiempo real.', 'success');
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn("Error leyendo nube:", e);
+    }
+    const raw = localStorage.getItem('MINERAL_PERU_BD');
+    if (raw) {
+        try {
+            const parsed = JSON.parse(raw);
+            PROYECTOS.forEach(p => {
+                if (parsed[p]) MAPA_SUBMODULOS[p].forEach(s => { if (parsed[p][s]) baseDatos[p][s] = parsed[p][s]; });
+            });
+            actualizarInterfaz();
+        } catch (e) {}
+    }
+    if (badgeNube) badgeNube.innerHTML = '<span>☁️ Conectado</span>';
 }
 
 function exportarExcel() {
-
-const subData = baseDatos[proyectoActual][submoduloActual];
-
-if (!subData || subData.kardex.length === 0) {
-
-mostrarNotificacion('Sin Datos', 'No hay datos para exportar en esta vista.', 'info');
-
-return;
-
-}
-
-if (typeof XLSX === 'undefined') {
-
-mostrarNotificacion('Librería no cargada', 'No se pudo cargar la librería para exportar Excel.', 'error');
-
-return;
-
-}
-
-const dataExport = subData.kardex.map(k => ({
-
-"Fecha (DD/MM/AAAA)": k.fecha,
-
-"Producto": k.nombre,
-
-"Código": k.codigo,
-
-"UnidadMedida": k.unidadMedida || 'UND',
-
-"Tipo Movimiento": k.tipo,
-
-"Cantidad": k.cantidad,
-
-"Precio Unitario (S/)": k.precioUnitario > 0 ? k.precioUnitario : "PENDIENTE",
-
-"Subtotal (S/)": k.precioUnitario > 0 ? redondear2Dec(k.cantidad * k.precioUnitario) : 0,
-
-"Centro de Costo": k.centroCosto,
-
-"Observación / Asignado A": k.observacion
-
-}));
-
-const ws = XLSX.utils.json_to_sheet(dataExport);
-
-const wb = XLSX.utils.book_new();
-
-XLSX.utils.book_append_sheet(wb, ws, "Kardex");
-
-XLSX.writeFile(wb, `MINERAL_PERU_${proyectoActual}_${submoduloActual}.xlsx`);
-
+    const subData = baseDatos[proyectoActual][submoduloActual];
+    if (!subData || subData.kardex.length === 0) return mostrarNotificacion('Sin Datos', 'No hay datos para exportar.', 'info');
+    const dataExport = subData.kardex.map(k => ({
+        "Fecha (DD/MM/AAAA)": k.fecha, "Producto": k.nombre, "Código": k.codigo,
+        "UnidadMedida": k.unidadMedida || 'UND', "Tipo Movimiento": k.tipo, "Cantidad": k.cantidad,
+        "Precio Unitario (S/)": k.precioUnitario > 0 ? k.precioUnitario : "PENDIENTE",
+        "Subtotal (S/)": k.precioUnitario > 0 ? redondear2Dec(k.cantidad * k.precioUnitario) : 0,
+        "Centro de Costo": k.centroCosto, "Observación / Asignado A": k.observacion
+    }));
+    const ws = XLSX.utils.json_to_sheet(dataExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Kardex");
+    XLSX.writeFile(wb, `MINERAL_PERU_${proyectoActual}_${submoduloActual}.xlsx`);
 }
 
 function abrirModalImportar() {
-
-document.getElementById('modal-proyecto-nombre').innerText = `PROYECTO ${proyectoActual.replace('_', ' ')} - ${submoduloActual}`;
-
-document.getElementById('modalImportar').classList.remove('hidden');
-
+    document.getElementById('modal-proyecto-nombre').innerText = `PROYECTO ${proyectoActual.replace('_', ' ')} - ${submoduloActual}`;
+    document.getElementById('modalImportar').classList.remove('hidden');
 }
-
-function cerrarModalImportar() {
-
-document.getElementById('modalImportar').classList.add('hidden');
-
-document.getElementById('inputExcel').value = '';
-
-}
+function cerrarModalImportar() { document.getElementById('modalImportar').classList.add('hidden'); document.getElementById('inputExcel').value = ''; }
 
 function descargarPlantillaExcel() {
-
-if (typeof XLSX === 'undefined') {
-
-mostrarNotificacion('Librería no cargada', 'No se pudo cargar la librería de Excel.', 'error');
-
-return;
-
-}
-
-const plantilla = [{
-
-"Fecha (DD/MM/AAAA)": "15/10/2026",
-
-"Producto": "Broca 36 MM",
-
-"Código": "BROCAS 36 MM",
-
-"UnidadMedida": "UND",
-
-"Cantidad": 10,
-
-"PrecioUnitario": 45.5,
-
-"Tipo": "ENTRADA",
-
-"CentroDeCosto": "CC-01",
-
-"Observacion": "Ingreso de almacén central"
-
-}];
-
-const ws = XLSX.utils.json_to_sheet(plantilla);
-
-const wb = XLSX.utils.book_new();
-
-XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
-
-XLSX.writeFile(wb, "Plantilla_Importacion_Mineral_Peru.xlsx");
-
+    const ws = XLSX.utils.json_to_sheet([{
+        "Fecha (DD/MM/AAAA)": "15/10/2026", "Producto": "Broca 36 MM", "Código": "BROCAS 36 MM",
+        "UnidadMedida": "UND", "Cantidad": 10, "PrecioUnitario": 45.5, "Tipo": "ENTRADA",
+        "CentroDeCosto": "CC-01", "Observacion": "Ingreso de almacén central"
+    }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
+    XLSX.writeFile(wb, "Plantilla_Importacion_Mineral_Peru.xlsx");
 }
 
 function procesarArchivoExcel(event) {
-
-const file = event.target.files[0];
-
-if (!file) return;
-
-const reader = new FileReader();
-
-reader.onload = (e) => {
-
-try {
-
-const data = new Uint8Array(e.target.result);
-
-const workbook = XLSX.read(data, { type: 'array' });
-
-const sheetName = workbook.SheetNames[0];
-
-const sheet = workbook.Sheets[sheetName];
-
-const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-let contador = 0;
-
-let subData = baseDatos[proyectoActual][submoduloActual];
-
-json.forEach(row => {
-
-const fechaRaw = row["Fecha (DD/MM/AAAA)"] || row["Fecha"] || row["FECHA"];
-
-const fechaStr = normalizarFechaLiteral(fechaRaw);
-
-let p = fechaStr.split('/');
-
-let dia = parseInt(p[0], 10) || 1;
-
-let mes = parseInt(p[1], 10) || 1;
-
-let anio = parseInt(p[2], 10) || new Date().getFullYear();
-
-let fechaIso = `${anio}-${mes.toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
-
-const nombre = String(row["Producto"] || row["PRODUCTO"] || row["Descripcion"] || "Sin Descripción").trim();
-
-const codigo = String(row["Código"] || row["CODIGO"] || row["Codigo"] || "GENERICO").trim().toUpperCase();
-
-const unidadMedida = String(row["UnidadMedida"] || row["UNIDAD"] || "UND").trim().toUpperCase();
-
-const cantidad = parsearCantidadDecimal(row["Cantidad"] || row["CANTIDAD"]);
-
-const precioRaw = row["PrecioUnitario"] || row["PRECIO"];
-
-const precioUnitario = (precioRaw !== "" && precioRaw !== undefined) ? parsearCantidadDecimal(precioRaw) : 0;
-
-const tipo = String(row["Tipo"] || row["TIPO"] || "ENTRADA").trim().toUpperCase().includes("SAL") ? "SALIDA" : "ENTRADA";
-
-const centroCosto = String(row["CentroDeCosto"] || row["CC"] || "CC-GENERAL").trim().toUpperCase();
-
-const observacion = String(row["Observacion"] || row["OBSERVACION"] || "Carga masiva Excel").trim();
-
-if (nombre && codigo && cantidad > 0) {
-
-subData.kardex.push({
-
-id: Date.now() + Math.floor(Math.random() * 100000),
-
-fecha: fechaStr, fechaIso, mes, anio,
-
-nombre, codigo, unidadMedida, tipo, cantidad, precioUnitario,
-
-centroCosto, observacion
-
-});
-
-contador++;
-
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+            let contador = 0, subData = baseDatos[proyectoActual][submoduloActual];
+            json.forEach(row => {
+                const fechaStr = normalizarFechaLiteral(row["Fecha (DD/MM/AAAA)"] || row["Fecha"] || row["FECHA"]);
+                let p = fechaStr.split('/');
+                let dia = parseInt(p[0], 10) || 1, mes = parseInt(p[1], 10) || 1, anio = parseInt(p[2], 10) || new Date().getFullYear();
+                let fechaIso = `${anio}-${mes.toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
+                const nombre = String(row["Producto"] || row["PRODUCTO"] || row["Descripcion"] || "Sin Descripción").trim();
+                const codigo = String(row["Código"] || row["CODIGO"] || row["Codigo"] || "GENERICO").trim().toUpperCase();
+                const unidadMedida = String(row["UnidadMedida"] || row["UNIDAD"] || "UND").trim().toUpperCase();
+                const cantidad = parsearCantidadDecimal(row["Cantidad"] || row["CANTIDAD"]);
+                const precioRaw = row["PrecioUnitario"] || row["PRECIO"];
+                const precioUnitario = (precioRaw !== "" && precioRaw !== undefined) ? parsearCantidadDecimal(precioRaw) : 0;
+                const tipo = String(row["Tipo"] || row["TIPO"] || "ENTRADA").trim().toUpperCase().includes("SAL") ? "SALIDA" : "ENTRADA";
+                const centroCosto = String(row["CentroDeCosto"] || row["CC"] || "CC-GENERAL").trim().toUpperCase();
+                const observacion = String(row["Observacion"] || row["OBSERVACION"] || "Carga masiva Excel").trim();
+                if (nombre && codigo && cantidad > 0) {
+                    subData.kardex.push({ id: Date.now() + Math.floor(Math.random() * 100000), fecha: fechaStr, fechaIso, mes, anio, nombre, codigo, unidadMedida, tipo, cantidad, precioUnitario, centroCosto, observacion });
+                    contador++;
+                }
+            });
+            cerrarModalImportar();
+            actualizarInterfaz();
+            await guardarDatosEnStorage();
+            mostrarNotificacion('Importación Exitosa', `Se subieron ${contador} registros en vivo.`, 'success');
+        } catch (err) {
+            mostrarNotificacion('Error', 'No se pudo procesar el Excel.', 'error');
+        }
+    };
+    reader.readAsArrayBuffer(file);
 }
-
-});
-
-guardarDatosEnStorage();
-
-cerrarModalImportar();
-
-actualizarInterfaz();
-
-mostrarNotificacion('Importación Exitosa', `Se importaron ${contador} registros correctamente.`, 'success');
-
-} catch (err) {
-
-console.error(err);
-
-mostrarNotificacion('Error de Lectura', 'No se pudo procesar el archivo Excel.', 'error');
-
-}
-
-};
-
-reader.readAsArrayBuffer(file);
-
-}
-
-// Modales de Cambio de Contraseña
-
-function abrirModalCambiarPassDesdeLogin() {
-
-document.getElementById('divCampoUsuarioSelect').classList.remove('hidden');
-
-document.getElementById('lblUsuarioCambiarPass').innerText = "Selecciona el usuario y actualiza su contraseña";
-
-document.getElementById('modalCambiarPass').classList.remove('hidden');
-
-}
-
-function abrirModalCambiarPassDesdeHeader() {
-
-document.getElementById('divCampoUsuarioSelect').classList.add('hidden');
-
-document.getElementById('lblUsuarioCambiarPass').innerText = `Usuario activo: ${rolUsuarioActual}`;
-
-document.getElementById('modalCambiarPass').classList.remove('hidden');
-
-}
-
-function cerrarModalCambiarPass() {
-
-document.getElementById('modalCambiarPass').classList.add('hidden');
-
-document.getElementById('passActual').value = '';
-
-document.getElementById('passNueva').value = '';
-
-document.getElementById('passConfirmar').value = '';
-
-}
-
-function ejecutarCambioPassword(e) {
-
-e.preventDefault();
-
-const userTargetKey = document.getElementById('divCampoUsuarioSelect').classList.contains('hidden') ?
-
-(rolUsuarioActual || 'admin') : document.getElementById('passUsuarioSelect').value;
-
-const targetUser = usuariosSistema[userTargetKey];
-
-const passActual = document.getElementById('passActual').value.trim();
-
-const passNueva = document.getElementById('passNueva').value.trim();
-
-const passConfirmar = document.getElementById('passConfirmar').value.trim();
-
-if (passActual !== targetUser.password && passActual !== targetUser.passAlt) {
-
-mostrarNotificacion('Contraseña Incorrecta', 'La contraseña actual ingresada no coincide.', 'error');
-
-return;
-
-}
-
-if (passNueva.length < 4) {
-
-mostrarNotificacion('Contraseña Débil', 'La nueva contraseña debe tener al menos 4 caracteres.', 'warning');
-
-return;
-
-}
-
-if (passNueva !== passConfirmar) {
-
-mostrarNotificacion('No Coinciden', 'La nueva contraseña y su confirmación no son iguales.', 'warning');
-
-return;
-
-}
-
-targetUser.password = passNueva;
-
-cerrarModalCambiarPass();
-
-mostrarNotificacion('Contraseña Actualizada', 'La clave de acceso ha sido cambiada.', 'success');
-
-}</script>
+</script>
+</body>
+</html>
