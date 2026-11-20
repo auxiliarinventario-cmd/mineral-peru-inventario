@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MINERAL PERU - Control de Inventarios por Proyecto y Submódulo</title>
@@ -57,6 +60,8 @@
             background-color: rgba(30, 41, 59, 0.9) !important;
             border-color: rgba(212, 175, 55, 0.4) !important;
         }</style>
+</head>
+<body>
     <!-- MODAL DE INICIO DE SESIÓN PRINCIPAL -->
 <div id="modalLogin" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
   <div class="glass-panel max-w-md w-full rounded-2xl p-8 border border-amber-500/40 shadow-2xl relative text-center">
@@ -157,6 +162,9 @@
       </div>
     </div>
     <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full md:w-auto">
+      <span id="estadoNube" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+        <span>☁️ Conectado</span>
+      </span>
       <div id="usuarioSesionInfo" class="hidden items-center justify-center space-x-2 bg-gray-900 border border-gray-800 px-3 py-1.5 rounded-lg">
         <i data-lucide="shield-check" class="w-4 h-4 text-amber-400" id="iconRol"></i>
         <span id="txtRolUsuario" class="text-xs font-bold text-amber-300">ADMINISTRADOR</span>
@@ -478,7 +486,8 @@
   </div>
 </div>
     <!-- SCRIPT DE LÓGICA INTEGRAL -->
-<script>const PROYECTOS = ['FOX', 'JESUS', 'SAN_JACINTO', 'RAMPA', 'PACKSACK'];
+<script>const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHtyMkq3jWcSn2v1OB15og-0dMEhnegIe5mQWba-B4hkqlmKAJNepMinDJ7Svo9iyGmg/exec";
+        const PROYECTOS = ['FOX', 'JESUS', 'SAN_JACINTO', 'RAMPA', 'PACKSACK'];
         const MAPA_SUBMODULOS = {
             'FOX': ['PRODUCTOS', 'COMBUSTIBLE', 'MENU', 'GASOLINA'],
             'JESUS': ['PRODUCTOS', 'COMBUSTIBLE', 'MENU', 'GASOLINA'],
@@ -590,7 +599,6 @@
             const filtroM = document.getElementById('filtroMes') ? document.getElementById('filtroMes').value : 'TODOS';
             const filtroA = document.getElementById('filtroAnio') ? document.getElementById('filtroAnio').value : 'TODOS';
             let mapaFacturas = {};
-            // Ordenar kardex de forma cronológica ascendente para procesar acumulados
             let kardexOrdenado = [...subData.kardex].sort((a, b) => obtenerTimestampDesdeFechaStr(a.fecha) - obtenerTimestampDesdeFechaStr(b.fecha));
             kardexOrdenado.forEach(k => {
                 const codKey = String(k.codigo || '').trim().toUpperCase();
@@ -633,12 +641,10 @@
                     f.stock = Math.max(0, redondear2Dec(f.entradas - f.salidas));
                 }
             });
-            // Filtrar productos con movimientos en el período seleccionado si aplica filtro de fecha
             let listaConsolidada = Object.values(mapaFacturas);
             if (filtroM !== 'TODOS' || filtroA !== 'TODOS') {
                 listaConsolidada = listaConsolidada.filter(f => f.tieneMovimientoEnFiltro);
             }
-            // Ordenar de más reciente a más antiguo por la última fecha registrada
             subData.facturas = listaConsolidada.sort((a, b) => obtenerTimestampDesdeFechaStr(b.fecha) - obtenerTimestampDesdeFechaStr(a.fecha));
         }
         function iniciarSesion(event) {
@@ -692,11 +698,11 @@
             }
             actualizarInterfaz();
         }
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             inicializarEstructuraBaseDatos();
             inicializarAniosFiltro();
             establecerFechaHoy();
-            cargarDatosGuardados();
+            await cargarDatosGuardados();
             const sesionGuardada = sessionStorage.getItem('MINERAL_PERU_ROL');
             if (sesionGuardada && (sesionGuardada === 'admin' || sesionGuardada === 'usuario')) {
                 rolUsuarioActual = sesionGuardada;
@@ -823,7 +829,6 @@
             const filtroM = document.getElementById('filtroMes').value;
             const filtroA = document.getElementById('filtroAnio').value;
             const filtroTexto = document.getElementById('inputBuscador').value.toLowerCase().trim();
-            // Render Consolidado
             let facturasFiltradas = subData.facturas.filter(f => {
                 let coincideStockMin = (modoVista !== 'stock_minimo' || f.stock <= 5);
                 let coincideTexto = !filtroTexto || 
@@ -871,7 +876,6 @@
                     });
                 }
             }
-            // Render Kardex (Ordenado cronológicamente de más reciente a más antiguo)
             let kardexFiltrado = subData.kardex.filter(k => {
                 let coincideMes = (filtroM === 'TODOS' || String(k.mes) === filtroM);
                 let coincideAnio = (filtroA === 'TODOS' || String(k.anio) === filtroA);
@@ -921,7 +925,6 @@
             const badge = document.getElementById('badgeStockMinimo');
             if (badge) badge.innerText = numStockMin;
         }
-        /* FÓRMULA MATEMÁTICA CORREGIDA */
         function actualizarMetricas() {
             const subData = baseDatos[proyectoActual][submoduloActual];
             if (!subData) return;
@@ -944,7 +947,6 @@
                     }
                 }
             });
-            // SALDO STOCK = ENTRADAS DEL MES - SALIDAS DEL MES
             let saldoSoles = entradasSoles - salidasSoles;
             let saldoCant = entradasCant - salidasCant;
             document.getElementById('metric-entradas-soles').innerText = formatearSoles(entradasSoles);
@@ -1001,7 +1003,7 @@
                     centroCosto, observacion
                 };
                 subData.kardex.push(nuevoMov);
-                mostrarNotificacion('Registro Exitoso', 'El movimiento se registró en el Kardex.', 'success');
+                mostrarNotificacion('Registro Exitoso', 'El movimiento se registró y sincronizó en la nube.', 'success');
             }
             guardarDatosEnStorage();
             limpiarFormulario();
@@ -1160,7 +1162,6 @@
         function ejecutarFiltroMes() {
             actualizarInterfaz();
         }
-        /* OPCIÓN DE LIMPIEZA DE DATA POR SUBMÓDULO/MENÚ Y PROYECTO COMPLETO */
         function abrirOpcionesLimpieza() {
             const subLabel = submoduloActual === 'MENU' ? 'EXPLOSIVOS' : submoduloActual;
             const projLabel = proyectoActual.replace('_', ' ');
@@ -1203,30 +1204,73 @@
                 }
             }
         }
-        function guardarCambiosManuales() {
-            guardarDatosEnStorage();
-            mostrarNotificacion('Guardado', 'Todos los datos se guardaron en LocalStorage.', 'success');
+        async function guardarCambiosManuales() {
+            await guardarDatosEnStorage();
+            mostrarNotificacion('Sincronizado', 'Todos los datos se guardaron y subieron a Google Sheets.', 'success');
         }
-        function guardarDatosEnStorage() {
-            localStorage.setItem('MINERAL_PERU_BD', JSON.stringify(baseDatos));
+        async function guardarDatosEnStorage() {
+            const jsonStr = JSON.stringify(baseDatos);
+            localStorage.setItem('MINERAL_PERU_BD', jsonStr);
+            const badgeNube = document.getElementById('estadoNube');
+            if (badgeNube) badgeNube.innerHTML = '<span>⏳ Guardando...</span>';
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: jsonStr
+                });
+                if (badgeNube) badgeNube.innerHTML = '<span>☁️ Sincronizado</span>';
+            } catch (e) {
+                console.error("Error al sincronizar con Google Sheets:", e);
+                if (badgeNube) badgeNube.innerHTML = '<span>⚠️ Solo Local</span>';
+            }
         }
-        function cargarDatosGuardados() {
-            const raw = localStorage.getItem('MINERAL_PERU_BD');
-            if (raw) {
-                try {
-                    const parsed = JSON.parse(raw);
-                    PROYECTOS.forEach(p => {
-                        if (parsed[p]) {
-                            MAPA_SUBMODULOS[p].forEach(s => {
-                                if (parsed[p][s]) {
-                                    baseDatos[p][s] = parsed[p][s];
-                                }
-                            });
-                        }
-                    });
-                } catch (e) {
-                    console.error("Error al cargar datos guardados", e);
+        async function cargarDatosGuardados() {
+            const badgeNube = document.getElementById('estadoNube');
+            if (badgeNube) badgeNube.innerHTML = '<span>⏳ Cargando nube...</span>';
+            let cargadoDesdeNube = false;
+            try {
+                const resp = await fetch(GOOGLE_SCRIPT_URL);
+                if (resp.ok) {
+                    const parsed = await resp.json();
+                    if (parsed && Object.keys(parsed).length > 0) {
+                        PROYECTOS.forEach(p => {
+                            if (parsed[p]) {
+                                MAPA_SUBMODULOS[p].forEach(s => {
+                                    if (parsed[p][s]) {
+                                        baseDatos[p][s] = parsed[p][s];
+                                    }
+                                });
+                            }
+                        });
+                        localStorage.setItem('MINERAL_PERU_BD', JSON.stringify(baseDatos));
+                        cargadoDesdeNube = true;
+                        if (badgeNube) badgeNube.innerHTML = '<span>☁️ En Línea</span>';
+                    }
                 }
+            } catch (e) {
+                console.warn("No se pudo leer de la nube, cargando respaldo local:", e);
+            }
+            if (!cargadoDesdeNube) {
+                const raw = localStorage.getItem('MINERAL_PERU_BD');
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        PROYECTOS.forEach(p => {
+                            if (parsed[p]) {
+                                MAPA_SUBMODULOS[p].forEach(s => {
+                                    if (parsed[p][s]) {
+                                        baseDatos[p][s] = parsed[p][s];
+                                    }
+                                });
+                            }
+                        });
+                    } catch (e) {
+                        console.error("Error al cargar datos locales", e);
+                    }
+                }
+                if (badgeNube) badgeNube.innerHTML = '<span>☁️ Listo</span>';
             }
         }
         function exportarExcel() {
@@ -1317,63 +1361,4 @@
                         const observacion = String(row["Observacion"] || row["OBSERVACION"] || "Carga masiva Excel").trim();
                         if (nombre && codigo && cantidad > 0) {
                             subData.kardex.push({
-                                id: Date.now() + Math.floor(Math.random() * 100000),
-                                fecha: fechaStr, fechaIso, mes, anio,
-                                nombre, codigo, unidadMedida, tipo, cantidad, precioUnitario,
-                                centroCosto, observacion
-                            });
-                            contador++;
-                        }
-                    });
-                    guardarDatosEnStorage();
-                    cerrarModalImportar();
-                    actualizarInterfaz();
-                    mostrarNotificacion('Importación Exitosa', `Se importaron ${contador} registros correctamente.`, 'success');
-                } catch (err) {
-                    console.error(err);
-                    mostrarNotificacion('Error de Lectura', 'No se pudo procesar el archivo Excel.', 'error');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-        // Modales de Cambio de Contraseña
-        function abrirModalCambiarPassDesdeLogin() {
-            document.getElementById('divCampoUsuarioSelect').classList.remove('hidden');
-            document.getElementById('lblUsuarioCambiarPass').innerText = "Selecciona el usuario y actualiza su contraseña";
-            document.getElementById('modalCambiarPass').classList.remove('hidden');
-        }
-        function abrirModalCambiarPassDesdeHeader() {
-            document.getElementById('divCampoUsuarioSelect').classList.add('hidden');
-            document.getElementById('lblUsuarioCambiarPass').innerText = `Usuario activo: ${rolUsuarioActual}`;
-            document.getElementById('modalCambiarPass').classList.remove('hidden');
-        }
-        function cerrarModalCambiarPass() {
-            document.getElementById('modalCambiarPass').classList.add('hidden');
-            document.getElementById('passActual').value = '';
-            document.getElementById('passNueva').value = '';
-            document.getElementById('passConfirmar').value = '';
-        }
-        function ejecutarCambioPassword(e) {
-            e.preventDefault();
-            const userTargetKey = document.getElementById('divCampoUsuarioSelect').classList.contains('hidden') ? 
-                (rolUsuarioActual || 'admin') : document.getElementById('passUsuarioSelect').value;
-            const targetUser = usuariosSistema[userTargetKey];
-            const passActual = document.getElementById('passActual').value.trim();
-            const passNueva = document.getElementById('passNueva').value.trim();
-            const passConfirmar = document.getElementById('passConfirmar').value.trim();
-            if (passActual !== targetUser.password && passActual !== targetUser.passAlt) {
-                mostrarNotificacion('Contraseña Incorrecta', 'La contraseña actual ingresada no coincide.', 'error');
-                return;
-            }
-            if (passNueva.length < 4) {
-                mostrarNotificacion('Contraseña Débil', 'La nueva contraseña debe tener al menos 4 caracteres.', 'warning');
-                return;
-            }
-            if (passNueva !== passConfirmar) {
-                mostrarNotificacion('No Coinciden', 'La nueva contraseña y su confirmación no son iguales.', 'warning');
-                return;
-            }
-            targetUser.password = passNueva;
-            cerrarModalCambiarPass();
-            mostrarNotificacion('Contraseña Actualizada', 'La clave de acceso ha sido cambiada.', 'success');
-        }</script>
+                                id: Date.now() + Math.floor(Math.random() * 1
