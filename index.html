@@ -558,14 +558,14 @@ function iniciarSesion(event) {
     if (event) event.preventDefault();
     const userVal = document.getElementById('loginUsuario').value.trim().toLowerCase();
     const passVal = document.getElementById('loginPassword').value.trim();
-    if (userVal === 'admin' && (passVal === 'admin' || passVal === '201294')) {
+    if (userVal === 'admin' && (passVal === 'admin' || passVal === '03112017')) {
         esAdmin = true;
         sessionStorage.setItem('MINERAL_PERU_ADMIN', 'true');
         cerrarModalLogin();
         aplicarPermisosRol();
         mostrarNotificacion('Modo Admin Activado', 'Ahora puedes registrar, editar e importar datos.', 'success');
     } else {
-        mostrarNotificacion('Error', 'Usuario: admin | Contraseña: admin o 201294', 'error');
+        mostrarNotificacion('Acceso Denegado', 'Usuario o contraseña incorrectos.', 'error');
     }
 }
 
