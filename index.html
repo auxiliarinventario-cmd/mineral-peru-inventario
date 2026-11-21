@@ -938,16 +938,20 @@ async function guardarDatosEnStorage() {
     const jsonStr = JSON.stringify(baseDatos);
     localStorage.setItem('MINERAL_PERU_BD', jsonStr);
     const badgeNube = document.getElementById('estadoNube');
-    if (badgeNube) badgeNube.innerHTML = '<span>⏳ Publicando...</span>';
+    if (badgeNube) badgeNube.innerHTML = '<span>⏳ Subiendo...</span>';
     try {
-        await fetch(GOOGLE_SCRIPT_URL, {
+        const resp = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: jsonStr
         });
-        if (badgeNube) badgeNube.innerHTML = '<span>☁️ En Vivo</span>';
+        if (resp.ok) {
+            if (badgeNube) badgeNube.innerHTML = '<span>☁️ En Vivo</span>';
+        } else {
+            if (badgeNube) badgeNube.innerHTML = '<span>⚠️ Error Nube</span>';
+        }
     } catch (e) {
+        console.error(e);
         if (badgeNube) badgeNube.innerHTML = '<span>⚠️ Error Red</span>';
     }
 }
